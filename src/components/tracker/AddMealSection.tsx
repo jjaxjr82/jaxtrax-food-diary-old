@@ -9,9 +9,10 @@ interface AddMealSectionProps {
   userId: string;
   selectedDate: string;
   onMealAdded: () => void;
+  disabled?: boolean;
 }
 
-const AddMealSection = ({ userId, selectedDate, onMealAdded }: AddMealSectionProps) => {
+const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMealSectionProps) => {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
@@ -106,11 +107,13 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded }: AddMealSectionPro
             className="w-full pr-12"
             placeholder="e.g., 1 cup of oatmeal with a banana and a tablespoon of peanut butter"
             required
+            disabled={disabled}
           />
           <button
             type="button"
             onClick={handleVoiceInput}
-            className={`absolute top-10 right-2 p-2 rounded-full hover:bg-gray-100 ${
+            disabled={disabled}
+            className={`absolute top-10 right-2 p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 ${
               listening ? "text-[#CE1141] animate-pulse" : "text-gray-500"
             }`}
             title="Start/Stop Dictation"
@@ -122,7 +125,7 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded }: AddMealSectionPro
           <Button
             type="submit"
             className="w-full bg-[#CE1141] hover:bg-[#a60d34]"
-            disabled={loading}
+            disabled={loading || disabled}
           >
             {loading ? "Analyzing..." : "Analyze and Add Meal"}
           </Button>

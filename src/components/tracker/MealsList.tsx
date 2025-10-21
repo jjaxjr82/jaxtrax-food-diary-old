@@ -10,9 +10,10 @@ interface MealsListProps {
   meals: Meal[];
   onMealUpdate: () => void;
   onMealDelete: () => void;
+  disabled?: boolean;
 }
 
-const MealsList = ({ meals, onMealUpdate, onMealDelete }: MealsListProps) => {
+const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled }: MealsListProps) => {
   const { toast } = useToast();
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
 
@@ -74,6 +75,7 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete }: MealsListProps) => {
                               size="sm"
                               variant="outline"
                               onClick={() => setEditingMeal(meal)}
+                              disabled={disabled}
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -81,6 +83,7 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete }: MealsListProps) => {
                               size="sm"
                               variant="destructive"
                               onClick={() => deleteMeal(meal.id)}
+                              disabled={disabled}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

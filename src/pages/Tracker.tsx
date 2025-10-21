@@ -72,6 +72,33 @@ const Tracker = () => {
     { calories: 0, protein: 0, carbs: 0, fats: 0, fiber: 0 }
   );
 
+  const [lockDay, setLockDay] = useState(false);
+
+  const handleResetData = async () => {
+    if (!user) return;
+    if (!confirm("Are you sure you want to reset ALL data? This cannot be undone!")) return;
+
+    try {
+      await supabase.from("meals").delete().eq("user_id", user.id);
+      await supabase.from("daily_stats").delete().eq("user_id", user.id);
+      await supabase.from("confirmed_foods").delete().eq("user_id", user.id);
+      await supabase.from("recipes").delete().eq("user_id", user.id);
+      
+      toast({
+        title: "Success",
+        description: "All data has been reset",
+      });
+      fetchDailyData();
+    } catch (error) {
+      console.error("Error resetting data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to reset data",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto max-w-5xl px-4 py-8">
@@ -79,6 +106,10 @@ const Tracker = () => {
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
           signOut={signOut}
+          userId={user?.id || ""}
+          onResetData={handleResetData}
+          lockDay={lockDay}
+          onLockDayChange={setLockDay}
         />
 
         <DailyDashboard
@@ -92,18 +123,21 @@ const Tracker = () => {
           selectedDate={selectedDate}
           meals={meals}
           onSupplementToggle={fetchDailyData}
+          disabled={lockDay}
         />
 
         <AddMealSection
           userId={user?.id || ""}
           selectedDate={selectedDate}
           onMealAdded={fetchDailyData}
+          disabled={lockDay}
         />
 
         <MealsList
           meals={meals}
           onMealUpdate={fetchDailyData}
           onMealDelete={fetchDailyData}
+          disabled={lockDay}
         />
       </div>
     </div>

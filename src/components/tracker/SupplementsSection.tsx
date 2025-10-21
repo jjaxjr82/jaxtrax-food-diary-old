@@ -10,9 +10,10 @@ interface SupplementsSectionProps {
   selectedDate: string;
   meals: Meal[];
   onSupplementToggle: () => void;
+  disabled?: boolean;
 }
 
-const SupplementsSection = ({ userId, selectedDate, meals, onSupplementToggle }: SupplementsSectionProps) => {
+const SupplementsSection = ({ userId, selectedDate, meals, onSupplementToggle, disabled }: SupplementsSectionProps) => {
   const { toast } = useToast();
 
   const isSupplementChecked = (supplementId: string) => {
@@ -68,6 +69,7 @@ const SupplementsSection = ({ userId, selectedDate, meals, onSupplementToggle }:
               id={`supp-${id}`}
               checked={isSupplementChecked(id)}
               onCheckedChange={(checked) => handleToggle(id, checked as boolean)}
+              disabled={disabled}
               className="border-[#CE1141] data-[state=checked]:bg-[#CE1141]"
             />
             <Label htmlFor={`supp-${id}`} className="ml-2 text-sm font-medium text-gray-700 cursor-pointer">
