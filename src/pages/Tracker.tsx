@@ -116,6 +116,9 @@ const Tracker = () => {
           totals={totals}
           dailyStats={dailyStats}
           weeklyGoal={dailyStats?.weekly_goal || "lose1"}
+          userId={user?.id || ""}
+          selectedDate={selectedDate}
+          onUpdate={fetchDailyData}
         />
 
         <SupplementsSection

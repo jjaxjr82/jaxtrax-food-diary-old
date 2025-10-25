@@ -1,4 +1,9 @@
+import { useState } from "react";
 import type { DailyStats } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface DailyDashboardProps {
   totals: {
@@ -10,9 +15,47 @@ interface DailyDashboardProps {
   };
   dailyStats: DailyStats | null;
   weeklyGoal: string;
+  userId: string;
+  selectedDate: string;
+  onUpdate: () => void;
 }
 
-const DailyDashboard = ({ totals, dailyStats, weeklyGoal }: DailyDashboardProps) => {
+const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, onUpdate }: DailyDashboardProps) => {
+  const { toast } = useToast();
+  const [weight, setWeight] = useState(dailyStats?.weight?.toString() || "");
+  const [caloriesBurned, setCaloriesBurned] = useState(dailyStats?.calories_burned?.toString() || "");
+
+  const handleSaveStats = async () => {
+    try {
+      const { error } = await supabase
+        .from("daily_stats")
+        .upsert({
+          user_id: userId,
+          date: selectedDate,
+          weight: weight ? parseFloat(weight) : null,
+          calories_burned: caloriesBurned ? parseFloat(caloriesBurned) : null,
+          weekly_goal: weeklyGoal,
+        }, {
+          onConflict: "user_id,date"
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Daily stats updated",
+      });
+      onUpdate();
+    } catch (error) {
+      console.error("Error saving stats:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save stats",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getCalorieGoal = () => {
     const baseCalories = 1526;
     const goals: Record<string, number> = {
@@ -74,12 +117,39 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal }: DailyDashboardProps)
           </span>
         </div>
       </div>
-      {dailyStats?.weight && (
-        <div className="text-center mt-4">
-          <span className="text-sm text-gray-500">Current Weight: </span>
-          <span className="font-medium text-gray-800">{dailyStats.weight} lbs</span>
+      
+      <div className="mt-6 pt-6 border-t border-gray-200">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Weight (lbs)
+            </label>
+            <Input
+              type="number"
+              step="0.1"
+              placeholder="Enter weight"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Calories Burned
+            </label>
+            <Input
+              type="number"
+              placeholder="Enter calories"
+              value={caloriesBurned}
+              onChange={(e) => setCaloriesBurned(e.target.value)}
+            />
+          </div>
+          <div>
+            <Button onClick={handleSaveStats} className="w-full">
+              Save Stats
+            </Button>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
