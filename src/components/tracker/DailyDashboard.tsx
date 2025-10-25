@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { DailyStats } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface DailyDashboardProps {
   totals: {
@@ -24,6 +25,13 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
   const { toast } = useToast();
   const [weight, setWeight] = useState(dailyStats?.weight?.toString() || "");
   const [caloriesBurned, setCaloriesBurned] = useState(dailyStats?.calories_burned?.toString() || "");
+  const [currentGoal, setCurrentGoal] = useState(weeklyGoal);
+
+  useEffect(() => {
+    setWeight(dailyStats?.weight?.toString() || "");
+    setCaloriesBurned(dailyStats?.calories_burned?.toString() || "");
+    setCurrentGoal(dailyStats?.weekly_goal || "lose1");
+  }, [dailyStats]);
 
   const handleSaveStats = async () => {
     try {
@@ -34,7 +42,7 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
           date: selectedDate,
           weight: weight ? parseFloat(weight) : null,
           calories_burned: caloriesBurned ? parseFloat(caloriesBurned) : null,
-          weekly_goal: weeklyGoal,
+          weekly_goal: currentGoal,
         }, {
           onConflict: "user_id,date"
         });
@@ -65,7 +73,7 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
       lose1: baseCalories - 500,
       lose2: baseCalories - 1000,
     };
-    return goals[weeklyGoal] || baseCalories;
+    return goals[currentGoal] || baseCalories;
   };
 
   const calorieGoal = getCalorieGoal();
@@ -74,10 +82,33 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
   const fatsGoal = Math.round(calorieGoal * 0.3 / 9);
   const fiberGoal = 30;
 
+  const goalOptions = [
+    { value: "gain2", label: "Gain 2 lbs/week" },
+    { value: "gain1", label: "Gain 1 lb/week" },
+    { value: "maintain", label: "Maintain weight" },
+    { value: "lose1", label: "Lose 1 lb/week" },
+    { value: "lose2", label: "Lose 2 lbs/week" },
+  ];
+
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-[#002855]">Daily Dashboard</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Weekly Goal:</span>
+          <Select value={currentGoal} onValueChange={setCurrentGoal}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {goalOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <div className="text-center bg-gray-50 p-4 rounded-lg">
