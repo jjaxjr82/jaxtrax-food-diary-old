@@ -65,19 +65,23 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
   };
 
   const getCalorieGoal = () => {
-    const baseCalories = 1526;
+    const BASE_TDEE = 2026;
+    const burnedCalories = caloriesBurned ? parseFloat(caloriesBurned) : 0;
+    const adjustedTDEE = BASE_TDEE + burnedCalories;
+    
     const goals: Record<string, number> = {
-      gain2: baseCalories + 1000,
-      gain1: baseCalories + 500,
-      maintain: baseCalories,
-      lose1: baseCalories - 500,
-      lose2: baseCalories - 1000,
+      gain2: adjustedTDEE + 1000,
+      gain1: adjustedTDEE + 500,
+      maintain: adjustedTDEE,
+      lose1: adjustedTDEE - 500,
+      lose2: adjustedTDEE - 1000,
     };
-    return goals[currentGoal] || baseCalories;
+    return goals[currentGoal] || adjustedTDEE;
   };
 
   const calorieGoal = getCalorieGoal();
-  const proteinGoal = Math.round(calorieGoal * 0.3 / 4);
+  const lastKnownWeight = weight ? parseFloat(weight) : null;
+  const proteinGoal = lastKnownWeight ? Math.round(lastKnownWeight * 0.8) : Math.round(calorieGoal * 0.3 / 4);
   const carbsGoal = Math.round(calorieGoal * 0.4 / 4);
   const fatsGoal = Math.round(calorieGoal * 0.3 / 9);
   const fiberGoal = 30;
