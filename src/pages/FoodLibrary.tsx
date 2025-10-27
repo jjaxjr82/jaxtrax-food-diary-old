@@ -4,16 +4,51 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import type { ConfirmedFood, Recipe } from "@/types";
+import LogConfirmedFoodModal from "@/components/food-library/LogConfirmedFoodModal";
+import EditConfirmedFoodModal from "@/components/food-library/EditConfirmedFoodModal";
+import EditRecipeModal from "@/components/food-library/EditRecipeModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const FoodLibrary = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"foods" | "recipes">("foods");
   const [search, setSearch] = useState("");
   const [confirmedFoods, setConfirmedFoods] = useState<ConfirmedFood[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  
+  // Modal states
+  const [logFoodModal, setLogFoodModal] = useState<{ open: boolean; food: ConfirmedFood | null }>({
+    open: false,
+    food: null,
+  });
+  const [editFoodModal, setEditFoodModal] = useState<{ open: boolean; food: ConfirmedFood | null }>({
+    open: false,
+    food: null,
+  });
+  const [editRecipeModal, setEditRecipeModal] = useState<{ open: boolean; recipe: Recipe | null }>({
+    open: false,
+    recipe: null,
+  });
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    type: "food" | "recipe" | null;
+    id: string | null;
+    name: string;
+  }>({ open: false, type: null, id: null, name: "" });
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -51,6 +86,68 @@ const FoodLibrary = () => {
   const filteredRecipes = recipes.filter((recipe) =>
     recipe.recipe_name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleLogRecipe = async (recipe: Recipe) => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+
+      const { error } = await supabase.from("meals").insert({
+        user_id: user!.id,
+        date: today,
+        meal_type: "Snack",
+        food_name: recipe.recipe_name,
+        quantity: "1 serving",
+        calories: recipe.total_calories,
+        protein: recipe.total_protein,
+        carbs: recipe.total_carbs,
+        fats: recipe.total_fats,
+        fiber: recipe.total_fiber,
+        is_confirmed: true,
+        is_recipe: true,
+        recipe_id: recipe.id,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Recipe logged to daily tracker",
+      });
+    } catch (error) {
+      console.error("Error logging recipe:", error);
+      toast({
+        title: "Error",
+        description: "Failed to log recipe",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteDialog.id || !deleteDialog.type) return;
+
+    try {
+      const table = deleteDialog.type === "food" ? "confirmed_foods" : "recipes";
+      const { error } = await supabase.from(table).delete().eq("id", deleteDialog.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `${deleteDialog.type === "food" ? "Food" : "Recipe"} deleted successfully`,
+      });
+
+      setDeleteDialog({ open: false, type: null, id: null, name: "" });
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete item",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -112,12 +209,13 @@ const FoodLibrary = () => {
                   <th className="px-3 py-3 text-right">Carbs</th>
                   <th className="px-3 py-3 text-right">Fats</th>
                   <th className="px-3 py-3 text-right">Fiber</th>
+                  <th className="px-4 py-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredFoods.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                       No confirmed foods found
                     </td>
                   </tr>
@@ -131,6 +229,41 @@ const FoodLibrary = () => {
                       <td className="px-3 py-3 text-right">{food.carbs?.toFixed(1)}g</td>
                       <td className="px-3 py-3 text-right">{food.fats?.toFixed(1)}g</td>
                       <td className="px-3 py-3 text-right">{food.fiber?.toFixed(1)}g</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2 justify-center">
+                          <Button
+                            size="sm"
+                            onClick={() => setLogFoodModal({ open: true, food })}
+                            className="h-8"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Log
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditFoodModal({ open: true, food })}
+                            className="h-8"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              setDeleteDialog({
+                                open: true,
+                                type: "food",
+                                id: food.id,
+                                name: food.food_name,
+                              })
+                            }
+                            className="h-8 border-red-300 text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -147,12 +280,13 @@ const FoodLibrary = () => {
                   <th className="px-3 py-3 text-right">Carbs</th>
                   <th className="px-3 py-3 text-right">Fats</th>
                   <th className="px-3 py-3 text-right">Fiber</th>
+                  <th className="px-4 py-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredRecipes.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                       No recipes found
                     </td>
                   </tr>
@@ -166,6 +300,41 @@ const FoodLibrary = () => {
                       <td className="px-3 py-3 text-right">{recipe.total_carbs?.toFixed(1)}g</td>
                       <td className="px-3 py-3 text-right">{recipe.total_fats?.toFixed(1)}g</td>
                       <td className="px-3 py-3 text-right">{recipe.total_fiber?.toFixed(1)}g</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2 justify-center">
+                          <Button
+                            size="sm"
+                            onClick={() => handleLogRecipe(recipe)}
+                            className="h-8"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Log
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditRecipeModal({ open: true, recipe })}
+                            className="h-8"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              setDeleteDialog({
+                                open: true,
+                                type: "recipe",
+                                id: recipe.id,
+                                name: recipe.recipe_name,
+                              })
+                            }
+                            className="h-8 border-red-300 text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -173,6 +342,44 @@ const FoodLibrary = () => {
             </table>
           )}
         </div>
+
+        <LogConfirmedFoodModal
+          food={logFoodModal.food}
+          open={logFoodModal.open}
+          onOpenChange={(open) => setLogFoodModal({ open, food: null })}
+          onSuccess={() => {}}
+        />
+
+        <EditConfirmedFoodModal
+          food={editFoodModal.food}
+          open={editFoodModal.open}
+          onOpenChange={(open) => setEditFoodModal({ open, food: null })}
+          onSuccess={fetchData}
+        />
+
+        <EditRecipeModal
+          recipe={editRecipeModal.recipe}
+          open={editRecipeModal.open}
+          onOpenChange={(open) => setEditRecipeModal({ open, recipe: null })}
+          onSuccess={fetchData}
+        />
+
+        <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open, type: null, id: null, name: "" })}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete "{deleteDialog.name}" from your library. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
