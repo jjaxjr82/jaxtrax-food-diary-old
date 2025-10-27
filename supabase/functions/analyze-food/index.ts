@@ -50,7 +50,7 @@ serve(async (req) => {
 
 Return ONLY valid JSON in this format:
 {
-  "items": [
+  "foods": [
     {
       "foodName": "banana",
       "quantity": "1 medium",
@@ -58,18 +58,20 @@ Return ONLY valid JSON in this format:
       "protein": 1.3,
       "carbs": 27,
       "fats": 0.4,
-      "fiber": 3.1
+      "fiber": 3.1,
+      "mealType": "Snack"
     }
   ]
 }
 
 Important:
 - Extract each food item separately
+- Determine appropriate mealType for each item (Breakfast, Lunch, Dinner, or Snack)
 - If the food matches a confirmed food in the database, use EXACTLY those nutritional values
 - Provide realistic nutritional values per serving for new foods
 - Include quantity with unit (e.g., "1 cup", "2 slices", "100g")
 - Round to 1 decimal place
-- Return ONLY the JSON object, no explanations`
+- Return ONLY the JSON object, no explanations or markdown`
           },
           {
             role: "user",
@@ -107,16 +109,15 @@ Important:
     const parsed = JSON.parse(content);
     
     // Check each item against confirmed foods to set isConfirmed flag
-    if (parsed.items && confirmedFoods) {
-      parsed.items = parsed.items.map((item: any) => {
+    if (parsed.foods && confirmedFoods) {
+      parsed.foods = parsed.foods.map((item: any) => {
         const match = confirmedFoods.find(cf => 
           cf.food_name.toLowerCase() === item.foodName.toLowerCase() &&
           cf.quantity === item.quantity
         );
         return {
           ...item,
-          isConfirmed: !!match,
-          mealType: mealType || "Snack"
+          isConfirmed: !!match
         };
       });
     }

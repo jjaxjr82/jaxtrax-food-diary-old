@@ -56,12 +56,12 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
 
       if (error) throw error;
 
-      if (data?.items) {
-        for (const item of data.items) {
+      if (data?.foods) {
+        for (const item of data.foods) {
           await supabase.from("meals").insert({
             user_id: userId,
             date: selectedDate,
-            meal_type: mealType,
+            meal_type: item.mealType || mealType,
             food_name: item.foodName,
             quantity: item.quantity,
             calories: item.calories,
@@ -75,7 +75,7 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
         
         toast({
           title: "Success",
-          description: `Added ${data.items.length} food item(s)`,
+          description: `Added ${data.foods.length} food item(s)`,
         });
         setDescription("");
         onMealAdded();
