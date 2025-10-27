@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Meal } from "@/types";
 
 interface EditMealDialogProps {
-  meal: Meal;
+  meal: Meal | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: () => void;
@@ -18,30 +18,34 @@ interface EditMealDialogProps {
 const EditMealDialog = ({ meal, open, onOpenChange, onSave }: EditMealDialogProps) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    food_name: meal.food_name,
-    quantity: meal.quantity,
-    calories: meal.calories,
-    protein: meal.protein,
-    carbs: meal.carbs,
-    fats: meal.fats,
-    fiber: meal.fiber,
-    meal_type: meal.meal_type,
+    food_name: "",
+    quantity: "",
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fats: 0,
+    fiber: 0,
+    meal_type: "Breakfast",
   });
 
   useEffect(() => {
-    setFormData({
-      food_name: meal.food_name,
-      quantity: meal.quantity,
-      calories: meal.calories,
-      protein: meal.protein,
-      carbs: meal.carbs,
-      fats: meal.fats,
-      fiber: meal.fiber,
-      meal_type: meal.meal_type,
-    });
+    if (meal) {
+      setFormData({
+        food_name: meal.food_name,
+        quantity: meal.quantity,
+        calories: meal.calories,
+        protein: meal.protein,
+        carbs: meal.carbs,
+        fats: meal.fats,
+        fiber: meal.fiber,
+        meal_type: meal.meal_type,
+      });
+    }
   }, [meal]);
 
   const handleSave = async () => {
+    if (!meal) return;
+    
     try {
       await supabase
         .from("meals")
