@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Meal, DailyStats } from "@/types";
@@ -10,12 +11,19 @@ import MealsList from "@/components/tracker/MealsList";
 import TrackerHeader from "@/components/tracker/TrackerHeader";
 
 const Tracker = () => {
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [meals, setMeals] = useState<Meal[]>([]);
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [authLoading, user, navigate]);
 
   useEffect(() => {
     if (user) {

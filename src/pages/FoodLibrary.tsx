@@ -8,12 +8,18 @@ import { ChevronLeft } from "lucide-react";
 import type { ConfirmedFood, Recipe } from "@/types";
 
 const FoodLibrary = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"foods" | "recipes">("foods");
   const [search, setSearch] = useState("");
   const [confirmedFoods, setConfirmedFoods] = useState<ConfirmedFood[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [authLoading, user, navigate]);
 
   useEffect(() => {
     if (user) {

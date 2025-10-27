@@ -9,25 +9,23 @@ export const useAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
       setLoading(false);
-      if (!session) {
-        navigate("/auth");
-      }
-    });
+    };
+
+    checkSession();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (!session) {
-        navigate("/auth");
-      }
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
 
   const signOut = async () => {
     await supabase.auth.signOut();
