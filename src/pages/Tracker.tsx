@@ -155,6 +155,8 @@ const Tracker = () => {
           onMealUpdate={fetchDailyData}
           onMealDelete={fetchDailyData}
           disabled={lockDay}
+          userId={user?.id || ""}
+          selectedDate={selectedDate}
         />
       </div>
     </div>
