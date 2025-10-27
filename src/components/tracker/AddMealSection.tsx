@@ -14,6 +14,7 @@ interface AddMealSectionProps {
 
 const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMealSectionProps) => {
   const [description, setDescription] = useState("");
+  const [mealType, setMealType] = useState<"Breakfast" | "Lunch" | "Dinner" | "Snack">("Breakfast");
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
   const { toast } = useToast();
@@ -50,7 +51,7 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("analyze-food", {
-        body: { description },
+        body: { description, userId, mealType },
       });
 
       if (error) throw error;
@@ -60,7 +61,7 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
           await supabase.from("meals").insert({
             user_id: userId,
             date: selectedDate,
-            meal_type: "Snack",
+            meal_type: mealType,
             food_name: item.foodName,
             quantity: item.quantity,
             calories: item.calories,
@@ -68,7 +69,7 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
             carbs: item.carbs,
             fats: item.fats,
             fiber: item.fiber,
-            is_confirmed: false,
+            is_confirmed: item.isConfirmed || false,
           });
         }
         
@@ -95,9 +96,31 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
     <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
       <h2 className="text-xl font-semibold mb-4 text-[#002855]">Add a Meal</h2>
       <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-600 mb-2">
+            Meal Type
+          </label>
+          <div className="flex gap-2">
+            {(["Breakfast", "Lunch", "Dinner", "Snack"] as const).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setMealType(type)}
+                disabled={disabled}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  mealType === type
+                    ? "bg-[#CE1141] text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                } disabled:opacity-50`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="relative">
           <label htmlFor="food-description" className="block text-sm font-medium text-gray-600 mb-2">
-            Describe what you ate (e.g., "For breakfast I had a banana")
+            Describe what you ate
           </label>
           <Textarea
             id="food-description"

@@ -9,6 +9,7 @@ import SupplementsSection from "@/components/tracker/SupplementsSection";
 import AddMealSection from "@/components/tracker/AddMealSection";
 import MealsList from "@/components/tracker/MealsList";
 import TrackerHeader from "@/components/tracker/TrackerHeader";
+import PendingConfirmation from "@/components/tracker/PendingConfirmation";
 
 const Tracker = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -135,6 +136,11 @@ const Tracker = () => {
           meals={meals}
           onSupplementToggle={fetchDailyData}
           disabled={lockDay}
+        />
+
+        <PendingConfirmation
+          meals={meals}
+          onUpdate={fetchDailyData}
         />
 
         <AddMealSection

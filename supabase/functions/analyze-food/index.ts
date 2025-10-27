@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +12,23 @@ serve(async (req) => {
   }
 
   try {
-    const { description } = await req.json();
+    const { description, userId, mealType } = await req.json();
+    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    // Fetch user's confirmed foods history
+    const { data: confirmedFoods } = await supabase
+      .from("confirmed_foods")
+      .select("*")
+      .eq("user_id", userId);
+    
+    const confirmedHistory = confirmedFoods?.length 
+      ? `\n\nUser's confirmed food database (use these exact values when matched):\n${confirmedFoods.map(f => 
+          `"${f.food_name}" (${f.quantity}): ${f.calories}cal, ${f.protein}g protein, ${f.carbs}g carbs, ${f.fats}g fats, ${f.fiber}g fiber`
+        ).join('\n')}`
+      : "";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
@@ -29,7 +46,9 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a nutrition analysis assistant. When given a description of a meal, extract all individual food items and provide detailed nutritional information for each. Return ONLY valid JSON in this format:
+            content: `You are a nutrition analysis assistant. When given a description of a meal, extract all individual food items and provide detailed nutritional information for each.${confirmedHistory}
+
+Return ONLY valid JSON in this format:
 {
   "items": [
     {
@@ -46,7 +65,8 @@ serve(async (req) => {
 
 Important:
 - Extract each food item separately
-- Provide realistic nutritional values per serving
+- If the food matches a confirmed food in the database, use EXACTLY those nutritional values
+- Provide realistic nutritional values per serving for new foods
 - Include quantity with unit (e.g., "1 cup", "2 slices", "100g")
 - Round to 1 decimal place
 - Return ONLY the JSON object, no explanations`
@@ -56,7 +76,6 @@ Important:
             content: description
           }
         ],
-        temperature: 0.7,
       }),
     });
 
@@ -83,6 +102,21 @@ Important:
     
     // Parse the JSON response
     const parsed = JSON.parse(content);
+    
+    // Check each item against confirmed foods to set isConfirmed flag
+    if (parsed.items && confirmedFoods) {
+      parsed.items = parsed.items.map((item: any) => {
+        const match = confirmedFoods.find(cf => 
+          cf.food_name.toLowerCase() === item.foodName.toLowerCase() &&
+          cf.quantity === item.quantity
+        );
+        return {
+          ...item,
+          isConfirmed: !!match,
+          mealType: mealType || "Snack"
+        };
+      });
+    }
     
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
