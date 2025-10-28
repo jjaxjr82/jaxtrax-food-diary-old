@@ -4,14 +4,13 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { ChevronLeft, Plus, Pencil, Trash2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { ConfirmedFood, Recipe } from "@/types";
 import LogConfirmedFoodModal from "@/components/food-library/LogConfirmedFoodModal";
 import EditConfirmedFoodModal from "@/components/food-library/EditConfirmedFoodModal";
 import EditRecipeModal from "@/components/food-library/EditRecipeModal";
-import ExcludedFoodsSection from "@/components/food-library/ExcludedFoodsSection";
-import MealSuggestionsSection from "@/components/food-library/MealSuggestionsSection";
+import AIFoodPlannerModal from "@/components/food-library/AIFoodPlannerModal";
 import { getTodayInEastern } from "@/lib/dateUtils";
 import {
   AlertDialog,
@@ -52,6 +51,7 @@ const FoodLibrary = () => {
     id: string | null;
     name: string;
   }>({ open: false, type: null, id: null, name: "" });
+  const [aiPlannerOpen, setAiPlannerOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -183,17 +183,17 @@ const FoodLibrary = () => {
               </h1>
               <p className="text-sm text-muted-foreground">Your confirmed foods and recipes</p>
             </div>
-            <div className="w-32"></div>
+            <Button
+              onClick={() => setAiPlannerOpen(true)}
+              className="shadow-sm hover:shadow-md transition-shadow"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              AI Meal Planner
+            </Button>
           </div>
         </header>
 
         <div className="space-y-6">
-          {/* AI Features Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ExcludedFoodsSection userId={user.id} />
-            <MealSuggestionsSection userId={user.id} />
-          </div>
-
           {/* Search */}
           <div className="bg-card/60 backdrop-blur-md rounded-xl shadow-elegant border border-border/50 p-4">
             <Input
@@ -409,6 +409,12 @@ const FoodLibrary = () => {
           open={editRecipeModal.open}
           onOpenChange={(open) => setEditRecipeModal({ open, recipe: null })}
           onSuccess={fetchData}
+        />
+
+        <AIFoodPlannerModal
+          open={aiPlannerOpen}
+          onOpenChange={setAiPlannerOpen}
+          userId={user.id}
         />
 
         <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open, type: null, id: null, name: "" })}>
