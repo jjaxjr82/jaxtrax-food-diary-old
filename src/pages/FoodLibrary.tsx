@@ -178,7 +178,7 @@ const FoodLibrary = () => {
               Back to Tracker
             </Button>
             <div className="space-y-1">
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">
+              <h1 className="text-5xl font-impact leading-none tracking-tight uppercase text-gradient-red font-black">
                 My Food Library
               </h1>
               <p className="text-sm text-muted-foreground">Your confirmed foods and recipes</p>

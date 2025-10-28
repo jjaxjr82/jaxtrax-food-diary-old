@@ -40,12 +40,7 @@ const TrackerHeader = ({
         {/* Single row header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h1 className="text-5xl font-impact leading-none tracking-tight uppercase mb-1" 
-                style={{
-                  color: '#FF0000',
-                  textShadow: '2px 4px 6px rgba(0, 0, 0, 0.9)',
-                  fontWeight: 900
-                }}>
+            <h1 className="text-5xl font-impact leading-none tracking-tight uppercase mb-1 text-gradient-red font-black">
               Fuel Tracker
             </h1>
             <p className="text-sm text-muted-foreground">Power Your Performance</p>
