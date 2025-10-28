@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Mic, PlusCircle, Sparkles, Utensils } from "lucide-react";
+import { Mic, PlusCircle, Sparkles, Utensils, Coffee, Sun, Moon, Apple } from "lucide-react";
 import ManualAddFoodModal from "./ManualAddFoodModal";
 
 interface AddMealSectionProps {
@@ -102,10 +102,10 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
   };
 
   const mealTypes = [
-    { value: "Breakfast", icon: "🌅" },
-    { value: "Lunch", icon: "☀️" },
-    { value: "Dinner", icon: "🌙" },
-    { value: "Snack", icon: "🍎" },
+    { value: "Breakfast", Icon: Coffee },
+    { value: "Lunch", Icon: Sun },
+    { value: "Dinner", Icon: Moon },
+    { value: "Snack", Icon: Apple },
   ] as const;
 
   return (
@@ -122,24 +122,27 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
             Meal Type
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {mealTypes.map((type) => (
-              <button
-                key={type.value}
-                type="button"
-                onClick={() => setMealType(type.value)}
-                disabled={disabled}
-                className={`relative p-4 rounded-xl font-medium transition-all ${
-                  mealType === type.value
-                    ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-lg scale-105"
-                    : "bg-background/50 text-foreground hover:bg-background/80 border border-border/50"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-2xl">{type.icon}</span>
-                  <span className="text-sm">{type.value}</span>
-                </div>
-              </button>
-            ))}
+            {mealTypes.map((type) => {
+              const IconComponent = type.Icon;
+              return (
+                <button
+                  key={type.value}
+                  type="button"
+                  onClick={() => setMealType(type.value)}
+                  disabled={disabled}
+                  className={`relative p-4 rounded-xl font-semibold transition-all ${
+                    mealType === type.value
+                      ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-lg scale-105"
+                      : "bg-background/50 text-foreground hover:bg-background/80 border border-border/50"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <IconComponent className="h-6 w-6" />
+                    <span className="text-sm">{type.value}</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
