@@ -114,6 +114,14 @@ Important formatting rules:
     // Parse the JSON response
     const parsed = JSON.parse(content);
     
+    // Helper function to enforce Title Case
+    const toTitleCase = (str: string) => {
+      return str
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    };
+    
     // Check each item against confirmed foods to set isConfirmed flag
     if (parsed.foods && confirmedFoods) {
       parsed.foods = parsed.foods.map((item: any) => {
@@ -123,6 +131,7 @@ Important formatting rules:
         );
         return {
           ...item,
+          foodName: toTitleCase(item.foodName), // Enforce Title Case
           isConfirmed: !!match
         };
       });
