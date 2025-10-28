@@ -10,12 +10,13 @@ import AddMealSection from "@/components/tracker/AddMealSection";
 import MealsList from "@/components/tracker/MealsList";
 import TrackerHeader from "@/components/tracker/TrackerHeader";
 import PendingConfirmation from "@/components/tracker/PendingConfirmation";
+import { getTodayInEastern } from "@/lib/dateUtils";
 
 const Tracker = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [selectedDate, setSelectedDate] = useState(getTodayInEastern());
   const [meals, setMeals] = useState<Meal[]>([]);
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
   const [loading, setLoading] = useState(true);

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { ConfirmedFood } from "@/types";
+import { getTodayInEastern } from "@/lib/dateUtils";
 
 interface LogConfirmedFoodModalProps {
   food: ConfirmedFood | null;
@@ -45,7 +46,7 @@ const LogConfirmedFoodModal = ({ food, open, onOpenChange, onSuccess }: LogConfi
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const today = new Date().toISOString().split("T")[0];
+      const today = getTodayInEastern();
 
       const { error } = await supabase.from("meals").insert({
         user_id: user.id,

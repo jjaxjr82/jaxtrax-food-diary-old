@@ -10,6 +10,7 @@ import type { ConfirmedFood, Recipe } from "@/types";
 import LogConfirmedFoodModal from "@/components/food-library/LogConfirmedFoodModal";
 import EditConfirmedFoodModal from "@/components/food-library/EditConfirmedFoodModal";
 import EditRecipeModal from "@/components/food-library/EditRecipeModal";
+import { getTodayInEastern } from "@/lib/dateUtils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -97,7 +98,7 @@ const FoodLibrary = () => {
     };
 
     try {
-      const today = new Date().toISOString().split("T")[0];
+      const today = getTodayInEastern();
 
       const { error } = await supabase.from("meals").insert({
         user_id: user!.id,

@@ -8,6 +8,7 @@ import EditMealDialog from "./EditMealDialog";
 import CopyMealModal from "./CopyMealModal";
 import QuickAddModal from "./QuickAddModal";
 import CreateRecipeModal from "./CreateRecipeModal";
+import { getDateInEastern } from "@/lib/dateUtils";
 
 interface MealsListProps {
   meals: Meal[];
@@ -37,9 +38,7 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled, userId, select
   }, [selectedDate, userId]);
 
   const fetchYesterdayMeals = async () => {
-    const yesterday = new Date(selectedDate);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split("T")[0];
+    const yesterdayStr = getDateInEastern(selectedDate, -1);
 
     const { data } = await supabase
       .from("meals")

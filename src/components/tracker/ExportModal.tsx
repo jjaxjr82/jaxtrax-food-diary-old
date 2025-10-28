@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getTodayInEastern, getDateOffsetInEastern } from "@/lib/dateUtils";
 
 interface ExportModalProps {
   open: boolean;
@@ -22,27 +23,21 @@ const ExportModal = ({ open, onOpenChange, userId }: ExportModalProps) => {
   const handleExport = async () => {
     let start = "";
     let end = "";
-    const today = new Date().toISOString().split("T")[0];
+    const today = getTodayInEastern();
 
     switch (range) {
       case "today":
         start = end = today;
         break;
       case "yesterday":
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        start = end = yesterday.toISOString().split("T")[0];
+        start = end = getDateOffsetInEastern(-1);
         break;
       case "last_week":
-        const lastWeek = new Date();
-        lastWeek.setDate(lastWeek.getDate() - 7);
-        start = lastWeek.toISOString().split("T")[0];
+        start = getDateOffsetInEastern(-7);
         end = today;
         break;
       case "last_month":
-        const lastMonth = new Date();
-        lastMonth.setMonth(lastMonth.getMonth() - 1);
-        start = lastMonth.toISOString().split("T")[0];
+        start = getDateOffsetInEastern(-30);
         end = today;
         break;
       case "custom":

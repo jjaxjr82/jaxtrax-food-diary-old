@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ExportModal from "./ExportModal";
 import { useState } from "react";
+import { getDateInEastern } from "@/lib/dateUtils";
 
 interface TrackerHeaderProps {
   selectedDate: string;
@@ -27,9 +28,7 @@ const TrackerHeader = ({
   const [exportOpen, setExportOpen] = useState(false);
 
   const changeDate = (days: number) => {
-    const date = new Date(selectedDate);
-    date.setDate(date.getDate() + days);
-    setSelectedDate(date.toISOString().split("T")[0]);
+    setSelectedDate(getDateInEastern(selectedDate, days));
   };
 
   return (
