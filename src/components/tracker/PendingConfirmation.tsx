@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Check, X, Pencil } from "lucide-react";
 import type { Meal } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import EditMealDialog from "./EditMealDialog";
 
 interface PendingConfirmationProps {
   meals: Meal[];
@@ -11,6 +13,7 @@ interface PendingConfirmationProps {
 
 const PendingConfirmation = ({ meals, onUpdate }: PendingConfirmationProps) => {
   const { toast } = useToast();
+  const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
   const unconfirmedMeals = meals.filter((m) => !m.is_confirmed);
 
   const handleConfirm = async (meal: Meal) => {
@@ -91,51 +94,74 @@ const PendingConfirmation = ({ meals, onUpdate }: PendingConfirmationProps) => {
   if (unconfirmedMeals.length === 0) return null;
 
   return (
-    <div className="bg-amber-50 rounded-xl border-2 border-amber-200 p-6 mb-8">
-      <h2 className="text-xl font-semibold mb-4 text-amber-900">
-        Pending Confirmation ({unconfirmedMeals.length})
-      </h2>
-      <p className="text-sm text-amber-800 mb-4">
-        Review these AI-parsed foods. Confirm to save them to your library for faster future logging.
-      </p>
-      <div className="space-y-3">
-        {unconfirmedMeals.map((meal) => (
-          <div
-            key={meal.id}
-            className="bg-white rounded-lg p-4 flex items-center justify-between gap-4 shadow-sm"
-          >
-            <div className="flex-1">
-              <div className="font-medium text-gray-900">{meal.food_name}</div>
-              <div className="text-sm text-gray-600">
-                {meal.quantity} • {meal.meal_type}
+    <>
+      <div className="bg-card/60 backdrop-blur-md rounded-2xl border-2 border-warning/30 p-6 mb-6 shadow-elegant">
+        <h2 className="text-xl font-semibold mb-4 text-foreground flex items-center gap-2">
+          <span className="inline-block w-2 h-2 rounded-full bg-warning animate-pulse"></span>
+          Pending Confirmation ({unconfirmedMeals.length})
+        </h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Review these AI-parsed foods. Confirm to save them to your library for faster future logging.
+        </p>
+        <div className="space-y-3">
+          {unconfirmedMeals.map((meal) => (
+            <div
+              key={meal.id}
+              className="bg-background/80 backdrop-blur-sm rounded-xl p-4 flex items-center justify-between gap-4 shadow-sm border border-border/50 hover:border-primary/30 transition-colors"
+            >
+              <div className="flex-1">
+                <div className="font-medium text-foreground">{meal.food_name}</div>
+                <div className="text-sm text-muted-foreground">
+                  {meal.quantity} • {meal.meal_type}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1 space-x-2">
+                  <span>{Math.round(meal.calories)}cal</span>
+                  <span>•</span>
+                  <span>{Math.round(meal.protein)}g protein</span>
+                  <span>•</span>
+                  <span>{Math.round(meal.carbs)}g carbs</span>
+                  <span>•</span>
+                  <span>{Math.round(meal.fats)}g fats</span>
+                </div>
               </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {Math.round(meal.calories)}cal • {Math.round(meal.protein)}g protein •{" "}
-                {Math.round(meal.carbs)}g carbs • {Math.round(meal.fats)}g fats
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setEditingMeal(meal)}
+                  className="hover:bg-muted"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => handleConfirm(meal)}
+                  className="bg-success hover:bg-success/90"
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  Confirm
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDelete(meal.id)}
+                  className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={() => handleConfirm(meal)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Check className="h-4 w-4 mr-1" />
-                Confirm
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleDelete(meal.id)}
-                className="border-red-300 text-red-600 hover:bg-red-50"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+
+      <EditMealDialog
+        meal={editingMeal}
+        open={!!editingMeal}
+        onOpenChange={(open) => !open && setEditingMeal(null)}
+        onSave={onUpdate}
+      />
+    </>
   );
 };
 
