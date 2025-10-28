@@ -36,22 +36,22 @@ const TrackerHeader = ({
 
   return (
     <>
-      <header className="mb-8 space-y-6">
-        {/* Top bar with title and actions */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-border/40">
-          <div className="space-y-1">
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">
+      <header className="mb-6">
+        {/* Single row header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4">
+          <div>
+            <h1 className="text-5xl sm:text-6xl font-black tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent uppercase">
               JaxTrax
             </h1>
-            <p className="text-sm text-muted-foreground">Your daily guide to mindful nutrition</p>
+            <p className="text-sm text-muted-foreground mt-1">Your daily guide to mindful nutrition</p>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button 
               onClick={() => setStatsOpen(true)} 
               variant="outline" 
               size="sm"
-              className="shadow-sm hover:shadow-md transition-shadow"
+              className="font-semibold uppercase"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               Stats
@@ -60,7 +60,7 @@ const TrackerHeader = ({
               onClick={() => navigate("/food-library")} 
               variant="outline" 
               size="sm"
-              className="shadow-sm hover:shadow-md transition-shadow"
+              className="font-semibold uppercase"
             >
               My Library
             </Button>
@@ -68,7 +68,7 @@ const TrackerHeader = ({
               onClick={() => setExportOpen(true)} 
               variant="outline" 
               size="sm"
-              className="shadow-sm hover:shadow-md transition-shadow"
+              className="font-semibold uppercase"
             >
               Export
             </Button>
@@ -76,7 +76,7 @@ const TrackerHeader = ({
               onClick={signOut} 
               variant="ghost" 
               size="sm"
-              className="text-muted-foreground hover:text-destructive"
+              className="text-muted-foreground hover:text-destructive font-semibold uppercase"
             >
               Sign Out
             </Button>
@@ -84,7 +84,7 @@ const TrackerHeader = ({
         </div>
 
         {/* Date navigation and controls */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-border/40">
           <div className="flex items-center gap-3 bg-card/80 backdrop-blur-sm p-2 rounded-xl shadow-elegant border border-border/50">
             <button
               onClick={() => changeDate(-1)}
