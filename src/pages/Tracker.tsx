@@ -155,8 +155,8 @@ const Tracker = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto max-w-5xl px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
         <TrackerHeader
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
@@ -167,43 +167,45 @@ const Tracker = () => {
           onLockDayChange={setLockDay}
         />
 
-        <DailyDashboard
-          totals={totals}
-          dailyStats={dailyStats}
-          weeklyGoal={dailyStats?.weekly_goal || "lose1"}
-          userId={user?.id || ""}
-          selectedDate={selectedDate}
-          onUpdate={fetchDailyData}
-        />
+        <div className="animate-slide-up space-y-6">
+          <DailyDashboard
+            totals={totals}
+            dailyStats={dailyStats}
+            weeklyGoal={dailyStats?.weekly_goal || "lose1"}
+            userId={user?.id || ""}
+            selectedDate={selectedDate}
+            onUpdate={fetchDailyData}
+          />
 
-        <SupplementsSection
-          userId={user?.id || ""}
-          selectedDate={selectedDate}
-          meals={meals}
-          onSupplementToggle={fetchDailyData}
-          disabled={lockDay}
-        />
+          <SupplementsSection
+            userId={user?.id || ""}
+            selectedDate={selectedDate}
+            meals={meals}
+            onSupplementToggle={fetchDailyData}
+            disabled={lockDay}
+          />
 
-        <PendingConfirmation
-          meals={meals}
-          onUpdate={fetchDailyData}
-        />
+          <PendingConfirmation
+            meals={meals}
+            onUpdate={fetchDailyData}
+          />
 
-        <AddMealSection
-          userId={user?.id || ""}
-          selectedDate={selectedDate}
-          onMealAdded={fetchDailyData}
-          disabled={lockDay}
-        />
+          <AddMealSection
+            userId={user?.id || ""}
+            selectedDate={selectedDate}
+            onMealAdded={fetchDailyData}
+            disabled={lockDay}
+          />
 
-        <MealsList
-          meals={meals}
-          onMealUpdate={fetchDailyData}
-          onMealDelete={fetchDailyData}
-          disabled={lockDay}
-          userId={user?.id || ""}
-          selectedDate={selectedDate}
-        />
+          <MealsList
+            meals={meals}
+            onMealUpdate={fetchDailyData}
+            onMealDelete={fetchDailyData}
+            disabled={lockDay}
+            userId={user?.id || ""}
+            selectedDate={selectedDate}
+          />
+        </div>
       </div>
     </div>
   );

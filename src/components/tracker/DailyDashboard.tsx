@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TrendingUp, Scale, Flame } from "lucide-react";
 
 interface DailyDashboardProps {
   totals: {
@@ -96,14 +97,36 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
     { value: "lose2", label: "Lose 2 lbs/week" },
   ];
 
+  const getProgressPercentage = (current: number, goal: number | null) => {
+    if (!goal) return 0;
+    return Math.min((current / goal) * 100, 100);
+  };
+
+  const getProgressColor = (percentage: number) => {
+    if (percentage >= 90) return "bg-success";
+    if (percentage >= 70) return "bg-warning";
+    return "bg-primary";
+  };
+
+  const macroCards = [
+    { label: "Calories", current: totals.calories, goal: calorieGoal, unit: "", icon: Flame },
+    { label: "Protein", current: totals.protein, goal: proteinGoal, unit: "g", icon: TrendingUp },
+    { label: "Carbs", current: totals.carbs, goal: carbsGoal, unit: "g", icon: TrendingUp },
+    { label: "Fats", current: totals.fats, goal: fatsGoal, unit: "g", icon: TrendingUp },
+    { label: "Fiber", current: totals.fiber, goal: fiberGoal, unit: "g", icon: TrendingUp },
+  ];
+
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-[#002855]">Daily Dashboard</h2>
+    <div className="bg-card/60 backdrop-blur-md rounded-2xl shadow-elegant-lg border border-border/50 p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <Scale className="h-6 w-6 text-primary" />
+          Daily Dashboard
+        </h2>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Weekly Goal:</span>
+          <span className="text-sm font-medium text-muted-foreground">Weekly Goal:</span>
           <Select value={currentGoal} onValueChange={setCurrentGoal}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] border-border/50 bg-background/50">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -116,49 +139,58 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
           </Select>
         </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div className="text-center bg-gray-50 p-4 rounded-lg">
-          <span className="text-sm text-gray-500 block">Calories</span>
-          <div className="text-2xl font-bold text-[#002855]">
-            {totals.calories.toFixed(0)}/{calorieGoal}
-          </div>
+
+      {/* Macro Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {macroCards.map((macro) => {
+          const percentage = getProgressPercentage(macro.current, macro.goal);
+          const progressColor = getProgressColor(percentage);
+          
+          return (
+            <div key={macro.label} className="bg-background/50 backdrop-blur-sm p-4 rounded-xl border border-border/30 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  {macro.label}
+                </span>
+                <macro.icon className="h-4 w-4 text-primary/60" />
+              </div>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold text-foreground">
+                  {macro.current.toFixed(0)}
+                  <span className="text-base font-normal text-muted-foreground">
+                    /{macro.goal ? macro.goal.toFixed(0) : "--"}
+                    {macro.unit}
+                  </span>
+                </div>
+                {/* Progress Bar */}
+                <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
+                  <div 
+                    className={`h-full ${progressColor} transition-all duration-500 ease-out rounded-full`}
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Burned Calories Card */}
+      <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-4 rounded-xl border border-primary/20">
+        <div className="flex items-center gap-2 mb-2">
+          <Flame className="h-5 w-5 text-primary" />
+          <span className="text-sm font-semibold text-foreground">Calories Burned Today</span>
         </div>
-        <div className="text-center bg-gray-50 p-4 rounded-lg">
-          <span className="text-sm text-gray-500 block">Protein</span>
-          <div className="text-2xl font-bold text-[#002855]">
-            {totals.protein.toFixed(0)}/{proteinGoal ? proteinGoal.toFixed(0) : "--"}g
-          </div>
-        </div>
-        <div className="text-center bg-gray-50 p-4 rounded-lg">
-          <span className="text-sm text-gray-500 block">Carbs</span>
-          <div className="text-2xl font-bold text-[#002855]">
-            {totals.carbs.toFixed(0)}/{carbsGoal ? carbsGoal.toFixed(0) : "--"}g
-          </div>
-        </div>
-        <div className="text-center bg-gray-50 p-4 rounded-lg">
-          <span className="text-sm text-gray-500 block">Fats</span>
-          <div className="text-2xl font-bold text-[#002855]">
-            {totals.fats.toFixed(0)}/{fatsGoal ? fatsGoal.toFixed(0) : "--"}g
-          </div>
-        </div>
-        <div className="text-center bg-gray-50 p-4 rounded-lg">
-          <span className="text-sm text-gray-500 block">Fiber</span>
-          <div className="text-2xl font-bold text-[#002855]">
-            {totals.fiber.toFixed(0)}/{fiberGoal ? fiberGoal.toFixed(0) : "--"}g
-          </div>
-        </div>
-        <div className="text-center bg-gray-50 p-4 rounded-lg">
-          <span className="text-sm text-gray-500 block">Burned</span>
-          <span className="text-2xl font-bold text-[#CE1141]">
-            {dailyStats?.calories_burned ? dailyStats.calories_burned.toFixed(0) : "--"}
-          </span>
+        <div className="text-3xl font-bold text-primary">
+          {dailyStats?.calories_burned ? dailyStats.calories_burned.toFixed(0) : "0"}
         </div>
       </div>
       
-      <div className="mt-6 pt-6 border-t border-gray-200">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+      {/* Stats Input Section */}
+      <div className="pt-6 border-t border-border/50">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
               Weight (lbs)
             </label>
             <Input
@@ -173,10 +205,11 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
                   handleSaveStats();
                 }
               }}
+              className="border-border/50 bg-background/50"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
               Calories Burned
             </label>
             <Input
@@ -190,10 +223,14 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
                   handleSaveStats();
                 }
               }}
+              className="border-border/50 bg-background/50"
             />
           </div>
-          <div>
-            <Button onClick={handleSaveStats} className="w-full">
+          <div className="flex items-end">
+            <Button 
+              onClick={handleSaveStats} 
+              className="w-full shadow-md hover:shadow-lg transition-shadow"
+            >
               Save Stats
             </Button>
           </div>

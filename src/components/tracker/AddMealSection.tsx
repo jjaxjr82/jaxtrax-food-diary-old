@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Mic, PlusCircle } from "lucide-react";
+import { Mic, PlusCircle, Sparkles, Utensils } from "lucide-react";
 import ManualAddFoodModal from "./ManualAddFoodModal";
 
 interface AddMealSectionProps {
@@ -101,81 +101,118 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
     }
   };
 
+  const mealTypes = [
+    { value: "Breakfast", icon: "🌅" },
+    { value: "Lunch", icon: "☀️" },
+    { value: "Dinner", icon: "🌙" },
+    { value: "Snack", icon: "🍎" },
+  ] as const;
+
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-      <h2 className="text-xl font-semibold mb-4 text-[#002855]">Add a Meal</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-600 mb-2">
+    <div className="bg-card/60 backdrop-blur-md rounded-2xl shadow-elegant-lg border border-border/50 p-6 space-y-6">
+      <div className="flex items-center gap-2">
+        <Utensils className="h-6 w-6 text-primary" />
+        <h2 className="text-2xl font-bold text-foreground">Add a Meal</h2>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Meal Type Selection */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium text-foreground">
             Meal Type
           </label>
-          <div className="flex gap-2">
-            {(["Breakfast", "Lunch", "Dinner", "Snack"] as const).map((type) => (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {mealTypes.map((type) => (
               <button
-                key={type}
+                key={type.value}
                 type="button"
-                onClick={() => setMealType(type)}
+                onClick={() => setMealType(type.value)}
                 disabled={disabled}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  mealType === type
-                    ? "bg-[#CE1141] text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                } disabled:opacity-50`}
+                className={`relative p-4 rounded-xl font-medium transition-all ${
+                  mealType === type.value
+                    ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-lg scale-105"
+                    : "bg-background/50 text-foreground hover:bg-background/80 border border-border/50"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {type}
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-2xl">{type.icon}</span>
+                  <span className="text-sm">{type.value}</span>
+                </div>
               </button>
             ))}
           </div>
         </div>
-        <div className="relative">
-          <label htmlFor="food-description" className="block text-sm font-medium text-gray-600 mb-2">
+
+        {/* AI Description Input */}
+        <div className="space-y-3">
+          <label htmlFor="food-description" className="text-sm font-medium text-foreground flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
             Describe what you ate
           </label>
-          <Textarea
-            id="food-description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
-            rows={3}
-            className="w-full pr-12"
-            placeholder="e.g., 1 cup of oatmeal with a banana and a tablespoon of peanut butter"
-            required
-            disabled={disabled}
-          />
-          <button
-            type="button"
-            onClick={handleVoiceInput}
-            disabled={disabled}
-            className={`absolute top-10 right-2 p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 ${
-              listening ? "text-[#CE1141] animate-pulse" : "text-gray-500"
-            }`}
-            title="Start/Stop Dictation"
-          >
-            <Mic className="h-5 w-5" />
-          </button>
+          <div className="relative">
+            <Textarea
+              id="food-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+              rows={3}
+              className="w-full pr-12 border-border/50 bg-background/50 focus:bg-background transition-colors resize-none"
+              placeholder="e.g., 8oz sirloin steak with 1 cup of rice and steamed broccoli"
+              required
+              disabled={disabled}
+            />
+            <button
+              type="button"
+              onClick={handleVoiceInput}
+              disabled={disabled}
+              className={`absolute top-3 right-3 p-2 rounded-lg transition-all ${
+                listening 
+                  ? "bg-primary text-primary-foreground animate-pulse shadow-lg" 
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              title="Voice Dictation"
+            >
+              <Mic className="h-4 w-4" />
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Press Enter to submit, Shift+Enter for new line
+          </p>
         </div>
-        <div className="mt-4 space-y-2">
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Button
             type="submit"
-            className="w-full bg-[#CE1141] hover:bg-[#a60d34]"
+            className="w-full shadow-md hover:shadow-lg transition-all bg-gradient-to-r from-primary to-primary/90"
             disabled={loading || disabled}
           >
-            {loading ? "Analyzing..." : "Analyze and Add Meal"}
+            {loading ? (
+              <>
+                <span className="animate-spin mr-2">⏳</span>
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI Analyze & Add
+              </>
+            )}
           </Button>
           <Button
             type="button"
             variant="outline"
-            className="w-full"
+            className="w-full shadow-sm hover:shadow-md transition-all border-border/50"
             onClick={() => setManualAddOpen(true)}
             disabled={disabled}
           >
             <PlusCircle className="h-4 w-4 mr-2" />
-            Manual Add Food
+            Manual Entry
           </Button>
         </div>
       </form>
