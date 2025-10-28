@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../../supabaseClient";
+import { supabase, sessionRestorePromise } from "../../supabaseClient";
 import type { User } from "@supabase/supabase-js";
 
 const EXTERNAL_AUTH_URL = "https://www.jaxtrax.net/auth";
@@ -11,23 +11,14 @@ export const useAuth = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      // First, try to get existing session
+      // CRITICAL: Wait for cookie-based session restoration to complete first
+      await sessionRestorePromise;
+      
+      // Now check for session
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
         setUser(session.user);
-        setLoading(false);
-        return;
-      }
-
-      // If no session, wait a moment before redirecting (allows cookies to be read)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check again after waiting
-      const { data: { session: retrySession } } = await supabase.auth.getSession();
-      
-      if (retrySession) {
-        setUser(retrySession.user);
         setLoading(false);
         return;
       }

@@ -21,22 +21,27 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Try to restore session from cookies on initial load
-const accessToken = getCookie('my-access-token');
-const refreshToken = getCookie('my-refresh-token');
+// Promise that resolves when session restoration is complete
+export const sessionRestorePromise = (async () => {
+  const accessToken = getCookie('my-access-token');
+  const refreshToken = getCookie('my-refresh-token');
 
-if (accessToken && refreshToken) {
-  supabase.auth.setSession({
-    access_token: accessToken,
-    refresh_token: refreshToken,
-  }).then(({ data, error }) => {
-    if (error) {
-      console.error("Error restoring session from cookies:", error);
-    } else {
-      console.log("Session restored from cookies");
+  if (accessToken && refreshToken) {
+    try {
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      if (error) {
+        console.error("Error restoring session from cookies:", error);
+      } else {
+        console.log("Session restored from cookies");
+      }
+    } catch (err) {
+      console.error("Failed to restore session:", err);
     }
-  });
-}
+  }
+})();
 
 supabase.auth.onAuthStateChange((event, session) => {
   console.log("Auth event:", event, session);
