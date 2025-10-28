@@ -28,15 +28,41 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
 
   // Common foods and allergens for autocomplete
   const commonFoods = [
+    // Allergens & Dietary Restrictions
     "Peanuts", "Tree Nuts (almonds, walnuts, cashews)", "Dairy (milk, cheese, yogurt)", 
     "Eggs", "Soy", "Wheat", "Gluten", "Shellfish (shrimp, crab, lobster)", 
-    "Fish (salmon, tuna, cod)", "Sesame", "Corn", "Red Meat (beef, pork, lamb)",
-    "Chicken", "Turkey", "Mushrooms", "Tomatoes", "Onions", "Garlic",
-    "Bell Peppers", "Spicy Foods", "Coconut", "Avocado", "Bananas",
-    "Citrus Fruits (oranges, lemons)", "Berries (strawberries, blueberries)",
-    "Chocolate", "Coffee", "Alcohol", "Sugar", "Artificial Sweeteners",
-    "Processed Foods", "Fried Foods", "Fast Food", "Beans", "Lentils",
-    "Broccoli", "Cauliflower", "Brussels Sprouts", "Cabbage", "Kale"
+    "Fish (salmon, tuna, cod)", "Sesame", "Corn", "Coconut",
+    
+    // Meats & Proteins
+    "Red Meat (beef, pork, lamb)", "Chicken", "Turkey", "Bacon", "Sausage",
+    "Deli Meats", "Hot Dogs", "Beans", "Lentils", "Tofu",
+    
+    // Condiments & Sauces
+    "Mayonnaise", "Ketchup", "Mustard", "BBQ Sauce", "Soy Sauce", 
+    "Hot Sauce", "Ranch Dressing", "Blue Cheese", "Caesar Dressing",
+    "Vinegar", "Honey Mustard", "Teriyaki Sauce",
+    
+    // Vegetables
+    "Mushrooms", "Tomatoes", "Onions", "Garlic", "Bell Peppers",
+    "Broccoli", "Cauliflower", "Brussels Sprouts", "Cabbage", "Kale",
+    "Spinach", "Lettuce", "Celery", "Carrots", "Cucumbers",
+    
+    // Fruits
+    "Avocado", "Bananas", "Citrus Fruits (oranges, lemons)", 
+    "Berries (strawberries, blueberries)", "Apples", "Grapes", "Melons",
+    
+    // Grains & Carbs
+    "Rice", "Pasta", "Bread", "Oats", "Quinoa", "Barley",
+    
+    // Sweeteners & Sweets
+    "Sugar", "Artificial Sweeteners", "Chocolate", "Candy", "Desserts",
+    
+    // Beverages
+    "Coffee", "Tea", "Alcohol", "Energy Drinks", "Soda",
+    
+    // Other
+    "Spicy Foods", "Fried Foods", "Fast Food", "Processed Foods",
+    "Pickles", "Olives", "Cottage Cheese", "Cream Cheese"
   ].sort();
 
   useEffect(() => {
