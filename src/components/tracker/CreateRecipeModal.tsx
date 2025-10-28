@@ -63,6 +63,14 @@ const CreateRecipeModal = ({ meals, open, onOpenChange, onSuccess }: CreateRecip
     }
 
     try {
+      // Helper function to ensure Title Case
+      const toTitleCase = (str: string) => {
+        return str
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+      };
+
       const ingredients = selectedMeals.map((m) => ({
         food_name: m.food_name,
         quantity: m.quantity,
@@ -75,7 +83,7 @@ const CreateRecipeModal = ({ meals, open, onOpenChange, onSuccess }: CreateRecip
 
       const { error } = await supabase.from("recipes").insert({
         user_id: selectedMeals[0].user_id,
-        recipe_name: recipeName,
+        recipe_name: toTitleCase(recipeName),
         ingredients,
         total_calories: totals.calories,
         total_protein: totals.protein,

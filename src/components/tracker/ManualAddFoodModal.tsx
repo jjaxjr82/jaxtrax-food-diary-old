@@ -92,6 +92,14 @@ const ManualAddFoodModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Helper function to ensure Title Case
+    const toTitleCase = (str: string) => {
+      return str
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    };
+
     try {
       // Check if this food exists in confirmed foods
       const { data: confirmedFoods } = await supabase
@@ -106,7 +114,7 @@ const ManualAddFoodModal = ({
         user_id: userId,
         date: selectedDate,
         meal_type: mealType,
-        food_name: formData.food_name,
+        food_name: toTitleCase(formData.food_name),
         quantity: formData.quantity,
         calories: Number(formData.calories),
         protein: Number(formData.protein),
@@ -124,7 +132,7 @@ const ManualAddFoodModal = ({
       if (!confirmedFoods) {
         const { error: confirmError } = await supabase.from("confirmed_foods").insert({
           user_id: userId,
-          food_name: formData.food_name,
+          food_name: toTitleCase(formData.food_name),
           quantity: formData.quantity,
           calories: Number(formData.calories),
           protein: Number(formData.protein),

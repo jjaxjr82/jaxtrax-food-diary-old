@@ -43,10 +43,21 @@ const EditConfirmedFoodModal = ({ food, open, onOpenChange, onSuccess }: EditCon
   const handleSave = async () => {
     if (!food) return;
 
+    // Helper function to ensure Title Case
+    const toTitleCase = (str: string) => {
+      return str
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    };
+
     try {
       const { error } = await supabase
         .from("confirmed_foods")
-        .update(formData)
+        .update({
+          ...formData,
+          food_name: toTitleCase(formData.food_name),
+        })
         .eq("id", food.id);
 
       if (error) throw error;

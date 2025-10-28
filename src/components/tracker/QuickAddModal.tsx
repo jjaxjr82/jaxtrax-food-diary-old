@@ -45,13 +45,21 @@ const QuickAddModal = ({ open, onOpenChange, userId, selectedDate, mealType, onS
     setRecipes((recipesData || []) as Recipe[]);
   };
 
+  // Helper function to ensure Title Case
+  const toTitleCase = (str: string) => {
+    return str
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   const handleAddFood = async (food: ConfirmedFood) => {
     try {
       const { error } = await supabase.from("meals").insert({
         user_id: userId,
         date: selectedDate,
         meal_type: mealType,
-        food_name: food.food_name,
+        food_name: toTitleCase(food.food_name),
         quantity: food.quantity,
         calories: food.calories,
         protein: food.protein,
@@ -86,7 +94,7 @@ const QuickAddModal = ({ open, onOpenChange, userId, selectedDate, mealType, onS
         user_id: userId,
         date: selectedDate,
         meal_type: mealType,
-        food_name: recipe.recipe_name,
+        food_name: toTitleCase(recipe.recipe_name),
         quantity: "1 serving",
         calories: recipe.total_calories,
         protein: recipe.total_protein,

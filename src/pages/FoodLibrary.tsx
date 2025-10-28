@@ -88,6 +88,14 @@ const FoodLibrary = () => {
   );
 
   const handleLogRecipe = async (recipe: Recipe) => {
+    // Helper function to ensure Title Case
+    const toTitleCase = (str: string) => {
+      return str
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    };
+
     try {
       const today = new Date().toISOString().split("T")[0];
 
@@ -95,7 +103,7 @@ const FoodLibrary = () => {
         user_id: user!.id,
         date: today,
         meal_type: "Snack",
-        food_name: recipe.recipe_name,
+        food_name: toTitleCase(recipe.recipe_name),
         quantity: "1 serving",
         calories: recipe.total_calories,
         protein: recipe.total_protein,

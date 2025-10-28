@@ -41,10 +41,21 @@ const EditRecipeModal = ({ recipe, open, onOpenChange, onSuccess }: EditRecipeMo
   const handleSave = async () => {
     if (!recipe) return;
 
+    // Helper function to ensure Title Case
+    const toTitleCase = (str: string) => {
+      return str
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    };
+
     try {
       const { error } = await supabase
         .from("recipes")
-        .update(formData)
+        .update({
+          ...formData,
+          recipe_name: toTitleCase(formData.recipe_name),
+        })
         .eq("id", recipe.id);
 
       if (error) throw error;

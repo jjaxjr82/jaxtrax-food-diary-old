@@ -77,6 +77,14 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled, userId, select
   };
 
   const handleConfirmFood = async (meal: Meal) => {
+    // Helper function to ensure Title Case
+    const toTitleCase = (str: string) => {
+      return str
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    };
+
     try {
       const { error: mealError } = await supabase
         .from("meals")
@@ -96,7 +104,7 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled, userId, select
       if (!existing) {
         const { error: confirmError } = await supabase.from("confirmed_foods").insert({
           user_id: meal.user_id,
-          food_name: meal.food_name,
+          food_name: toTitleCase(meal.food_name),
           quantity: meal.quantity,
           calories: meal.calories,
           protein: meal.protein,

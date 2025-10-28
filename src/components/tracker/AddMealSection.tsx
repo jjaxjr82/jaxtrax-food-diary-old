@@ -46,6 +46,13 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
     recognition.start();
   };
 
+  const toTitleCase = (str: string) => {
+    return str
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim()) return;
@@ -64,7 +71,7 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
             user_id: userId,
             date: selectedDate,
             meal_type: item.mealType || mealType,
-            food_name: item.foodName,
+            food_name: toTitleCase(item.foodName),
             quantity: item.quantity,
             calories: item.calories,
             protein: item.protein,
