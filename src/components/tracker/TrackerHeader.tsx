@@ -40,7 +40,7 @@ const TrackerHeader = ({
         {/* Single row header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tighter text-primary uppercase leading-none">
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tighter text-primary uppercase leading-none text-condensed">
               MINDFLOW
             </h1>
             <p className="text-xs text-muted-foreground mt-1">From Chaos to Clarity</p>
