@@ -29,8 +29,18 @@ export const fetchNutritionByBarcode = async (barcode: string): Promise<Nutritio
     const servingSize = product.serving_quantity || 100;
     const servingUnit = product.serving_quantity_unit || "g";
 
+    // Helper function to capitalize food names properly
+    const capitalizeWords = (str: string) => {
+      return str
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    };
+
+    const productName = capitalizeWords(product.product_name || "Unknown Product");
+
     return {
-      foodName: product.product_name || "Unknown Product",
+      foodName: productName,
       quantity: `${servingSize}${servingUnit}`,
       calories: Math.round(nutriments['energy-kcal_100g'] || 0),
       protein: parseFloat((nutriments.proteins_100g || 0).toFixed(1)),

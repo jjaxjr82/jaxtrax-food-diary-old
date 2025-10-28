@@ -52,7 +52,7 @@ Return ONLY valid JSON in this format:
 {
   "foods": [
     {
-      "foodName": "banana",
+      "foodName": "Banana",
       "quantity": "1 medium",
       "calories": 105,
       "protein": 1.3,
@@ -64,13 +64,19 @@ Return ONLY valid JSON in this format:
   ]
 }
 
-Important:
+Important formatting rules:
+- Food names: Use Title Case (e.g., "Chicken Breast", "Greek Yogurt", "Peanut Butter")
+- Quantities: Use standard abbreviations:
+  * g (grams), oz (ounces), lb (pounds)
+  * cup/cups, tbsp (tablespoon), tsp (teaspoon)
+  * slice/slices, piece/pieces
+  * small, medium, large (for sizes)
+  * Examples: "4 oz", "1 cup", "2 tbsp", "100g", "1 medium"
 - Extract each food item separately
 - Determine appropriate mealType for each item (Breakfast, Lunch, Dinner, or Snack)
 - If the food matches a confirmed food in the database, use EXACTLY those nutritional values
 - Provide realistic nutritional values per serving for new foods
-- Include quantity with unit (e.g., "1 cup", "2 slices", "100g")
-- Round to 1 decimal place
+- Round nutritional values to 1 decimal place
 - Return ONLY the JSON object, no explanations or markdown`
           },
           {
