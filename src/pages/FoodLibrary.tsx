@@ -4,14 +4,13 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Plus, Pencil, Trash2, Sparkles, Settings } from "lucide-react";
+import { ChevronLeft, Plus, Pencil, Trash2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { ConfirmedFood, Recipe } from "@/types";
 import LogConfirmedFoodModal from "@/components/food-library/LogConfirmedFoodModal";
 import EditConfirmedFoodModal from "@/components/food-library/EditConfirmedFoodModal";
 import EditRecipeModal from "@/components/food-library/EditRecipeModal";
 import AIFoodPlannerModal from "@/components/food-library/AIFoodPlannerModal";
-import SettingsModal from "@/components/tracker/SettingsModal";
 import { getTodayInEastern } from "@/lib/dateUtils";
 import {
   AlertDialog,
@@ -53,7 +52,6 @@ const FoodLibrary = () => {
     name: string;
   }>({ open: false, type: null, id: null, name: "" });
   const [aiPlannerOpen, setAiPlannerOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -185,23 +183,13 @@ const FoodLibrary = () => {
               </h1>
               <p className="text-sm text-muted-foreground">Your confirmed foods and recipes</p>
             </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setSettingsOpen(true)}
-                variant="outline"
-                className="shadow-sm hover:shadow-md transition-shadow"
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-              <Button
-                onClick={() => setAiPlannerOpen(true)}
-                className="shadow-sm hover:shadow-md transition-shadow"
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                AI Meal Planner
-              </Button>
-            </div>
+            <Button
+              onClick={() => setAiPlannerOpen(true)}
+              className="shadow-sm hover:shadow-md transition-shadow"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              AI Meal Planner
+            </Button>
           </div>
         </header>
 
@@ -427,13 +415,6 @@ const FoodLibrary = () => {
           open={aiPlannerOpen}
           onOpenChange={setAiPlannerOpen}
           userId={user.id}
-        />
-
-        <SettingsModal
-          open={settingsOpen}
-          onOpenChange={setSettingsOpen}
-          userId={user.id}
-          onSettingsUpdate={() => {}}
         />
 
         <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open, type: null, id: null, name: "" })}>

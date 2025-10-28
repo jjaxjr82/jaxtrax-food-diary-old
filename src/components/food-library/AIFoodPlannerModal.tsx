@@ -27,6 +27,7 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
   const [mealType, setMealType] = useState("lunch");
   const [suggestions, setSuggestions] = useState("");
   const [userSettings, setUserSettings] = useState<any>(null);
+  const [editableSettings, setEditableSettings] = useState<any>(null);
   const [comboOpen, setComboOpen] = useState(false);
   const { toast } = useToast();
 
@@ -110,7 +111,44 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
 
     if (data) {
       setUserSettings(data);
+      setEditableSettings(data);
+    } else {
+      // Set default values if no settings exist
+      const defaults = {
+        base_tdee: 2026,
+        protein_per_lb: 0.8,
+        carbs_percentage: 50,
+        fats_percentage: 30,
+        fiber_per_1000_cal: 14,
+      };
+      setUserSettings(defaults);
+      setEditableSettings(defaults);
     }
+  };
+
+  const handleSaveSettings = async () => {
+    setLoading(true);
+    const { error } = await supabase
+      .from("user_settings")
+      .upsert({
+        user_id: userId,
+        ...editableSettings,
+      });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save settings",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Settings saved successfully",
+      });
+      setUserSettings(editableSettings);
+    }
+    setLoading(false);
   };
 
   const handleAddExcluded = async (foodName?: string) => {
@@ -324,8 +362,9 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
         </DialogHeader>
 
         <Tabs defaultValue="suggestions" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="suggestions">Get Suggestions</TabsTrigger>
+            <TabsTrigger value="settings">Target Macros</TabsTrigger>
             <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
             <TabsTrigger value="excluded">Excluded Foods</TabsTrigger>
           </TabsList>
@@ -381,6 +420,83 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
             {suggestions && (
               <div className="bg-muted/50 p-4 rounded-lg space-y-2">
                 <div className="whitespace-pre-wrap text-sm">{suggestions}</div>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-4 mt-4">
+            <p className="text-sm text-muted-foreground">
+              Customize your nutrition targets - these affect your daily and per-meal macro calculations
+            </p>
+
+            {editableSettings && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Base TDEE (Total Daily Energy Expenditure)</label>
+                  <Input
+                    type="number"
+                    value={editableSettings.base_tdee || ''}
+                    onChange={(e) => setEditableSettings({ ...editableSettings, base_tdee: Number(e.target.value) })}
+                    placeholder="e.g., 2026"
+                  />
+                  <p className="text-xs text-muted-foreground">Your daily calorie target in calories</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Protein per lb of body weight</label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={editableSettings.protein_per_lb || ''}
+                    onChange={(e) => setEditableSettings({ ...editableSettings, protein_per_lb: Number(e.target.value) })}
+                    placeholder="e.g., 0.8"
+                  />
+                  <p className="text-xs text-muted-foreground">Grams of protein per pound of body weight</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Carbs Percentage</label>
+                  <Input
+                    type="number"
+                    value={editableSettings.carbs_percentage || ''}
+                    onChange={(e) => setEditableSettings({ ...editableSettings, carbs_percentage: Number(e.target.value) })}
+                    placeholder="e.g., 50"
+                  />
+                  <p className="text-xs text-muted-foreground">Percentage of daily calories from carbs</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Fats Percentage</label>
+                  <Input
+                    type="number"
+                    value={editableSettings.fats_percentage || ''}
+                    onChange={(e) => setEditableSettings({ ...editableSettings, fats_percentage: Number(e.target.value) })}
+                    placeholder="e.g., 30"
+                  />
+                  <p className="text-xs text-muted-foreground">Percentage of daily calories from fats</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Fiber per 1000 Calories</label>
+                  <Input
+                    type="number"
+                    value={editableSettings.fiber_per_1000_cal || ''}
+                    onChange={(e) => setEditableSettings({ ...editableSettings, fiber_per_1000_cal: Number(e.target.value) })}
+                    placeholder="e.g., 14"
+                  />
+                  <p className="text-xs text-muted-foreground">Grams of fiber per 1000 calories</p>
+                </div>
+
+                <Button onClick={handleSaveSettings} disabled={loading} className="w-full">
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Target Macros"
+                  )}
+                </Button>
               </div>
             )}
           </TabsContent>
