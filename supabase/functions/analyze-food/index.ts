@@ -24,12 +24,46 @@ serve(async (req) => {
       .select("*")
       .eq("user_id", userId);
     
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    
+    // Helper function to search USDA FoodData Central
+    async function searchUSDA(foodName: string) {
+      try {
+        const searchUrl = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query=${encodeURIComponent(foodName)}&pageSize=1&dataType=Survey (FNDDS)`;
+        const response = await fetch(searchUrl);
+        
+        if (!response.ok) return null;
+        
+        const data = await response.json();
+        if (!data.foods || data.foods.length === 0) return null;
+        
+        const food = data.foods[0];
+        const nutrients = food.foodNutrients || [];
+        
+        // Extract key nutrients
+        const getNeeded = (name: string) => {
+          const nutrient = nutrients.find((n: any) => n.nutrientName.includes(name));
+          return nutrient ? parseFloat(nutrient.value.toFixed(1)) : 0;
+        };
+        
+        return {
+          calories: getNeeded("Energy") || 0,
+          protein: getNeeded("Protein") || 0,
+          carbs: getNeeded("Carbohydrate") || 0,
+          fats: getNeeded("Total lipid") || 0,
+          fiber: getNeeded("Fiber") || 0,
+        };
+      } catch (error) {
+        console.error("USDA API error:", error);
+        return null;
+      }
+    }
+    
     const confirmedHistory = confirmedFoods?.length 
       ? `\n\nUser's confirmed food database (use these exact values when matched):\n${confirmedFoods.map(f => 
           `"${f.food_name}" (${f.quantity}): ${f.calories}cal, ${f.protein}g protein, ${f.carbs}g carbs, ${f.fats}g fats, ${f.fiber}g fiber`
         ).join('\n')}`
       : "";
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
@@ -122,19 +156,56 @@ Important formatting rules:
         .join(' ');
     };
     
-    // Check each item against confirmed foods to set isConfirmed flag
-    if (parsed.foods && confirmedFoods) {
-      parsed.foods = parsed.foods.map((item: any) => {
-        const match = confirmedFoods.find(cf => 
+    // Enhance with USDA data and check confirmed foods
+    if (parsed.foods) {
+      parsed.foods = await Promise.all(parsed.foods.map(async (item: any) => {
+        // First check confirmed foods
+        const confirmedMatch = confirmedFoods?.find(cf => 
           cf.food_name.toLowerCase() === item.foodName.toLowerCase() &&
           cf.quantity === item.quantity
         );
+        
+        if (confirmedMatch) {
+          return {
+            ...item,
+            foodName: toTitleCase(item.foodName),
+            calories: confirmedMatch.calories,
+            protein: confirmedMatch.protein,
+            carbs: confirmedMatch.carbs,
+            fats: confirmedMatch.fats,
+            fiber: confirmedMatch.fiber,
+            isConfirmed: true
+          };
+        }
+        
+        // Then try USDA for accurate data
+        const usdaData = await searchUSDA(item.foodName);
+        
+        if (usdaData && usdaData.calories > 0) {
+          // Scale nutrients based on quantity if it differs from 100g
+          const scaleFactor = item.quantity.includes('100g') || item.quantity.includes('100 g') ? 1 : 1;
+          
+          return {
+            ...item,
+            foodName: toTitleCase(item.foodName),
+            calories: Math.round(usdaData.calories * scaleFactor),
+            protein: parseFloat((usdaData.protein * scaleFactor).toFixed(1)),
+            carbs: parseFloat((usdaData.carbs * scaleFactor).toFixed(1)),
+            fats: parseFloat((usdaData.fats * scaleFactor).toFixed(1)),
+            fiber: parseFloat((usdaData.fiber * scaleFactor).toFixed(1)),
+            isConfirmed: false,
+            source: "USDA"
+          };
+        }
+        
+        // Fall back to AI estimate
         return {
           ...item,
-          foodName: toTitleCase(item.foodName), // Enforce Title Case
-          isConfirmed: !!match
+          foodName: toTitleCase(item.foodName),
+          isConfirmed: false,
+          source: "AI Estimate"
         };
-      });
+      }));
     }
     
     return new Response(JSON.stringify(parsed), {
