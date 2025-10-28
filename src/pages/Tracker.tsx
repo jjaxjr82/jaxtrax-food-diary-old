@@ -156,7 +156,7 @@ const Tracker = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-4 pb-8">
         <TrackerHeader
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}

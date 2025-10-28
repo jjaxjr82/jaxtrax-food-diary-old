@@ -36,9 +36,9 @@ const TrackerHeader = ({
 
   return (
     <>
-      <header className="mb-2">
+      <header className="mb-4">
         {/* Single row header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent uppercase leading-none">
               JaxTrax
@@ -84,7 +84,7 @@ const TrackerHeader = ({
         </div>
 
         {/* Date navigation and controls */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-2 mt-2 border-t border-border/40">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-1 mt-1 border-t border-border/40">
           <div className="flex items-center gap-3 bg-card/80 backdrop-blur-sm p-2 rounded-xl shadow-elegant border border-border/50">
             <button
               onClick={() => changeDate(-1)}
