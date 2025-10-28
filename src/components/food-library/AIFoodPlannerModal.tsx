@@ -27,7 +27,7 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
   const [mealType, setMealType] = useState("lunch");
   const [suggestions, setSuggestions] = useState("");
   const [userSettings, setUserSettings] = useState<any>(null);
-  const [editableSettings, setEditableSettings] = useState<any>(null);
+  const [targetMacros, setTargetMacros] = useState({ calories: 500, protein: 30, carbs: 60, fats: 15 });
   const [comboOpen, setComboOpen] = useState(false);
   const { toast } = useToast();
 
@@ -107,13 +107,13 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
       .from("user_settings")
       .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     if (data) {
       setUserSettings(data);
-      setEditableSettings(data);
+      const calculatedTargets = calculateMealTargets(data);
+      setTargetMacros(calculatedTargets);
     } else {
-      // Set default values if no settings exist
       const defaults = {
         base_tdee: 2026,
         protein_per_lb: 0.8,
@@ -122,33 +122,32 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
         fiber_per_1000_cal: 14,
       };
       setUserSettings(defaults);
-      setEditableSettings(defaults);
+      const calculatedTargets = calculateMealTargets(defaults);
+      setTargetMacros(calculatedTargets);
     }
   };
 
-  const handleSaveSettings = async () => {
-    setLoading(true);
-    const { error } = await supabase
-      .from("user_settings")
-      .upsert({
-        user_id: userId,
-        ...editableSettings,
-      });
+  const calculateMealTargets = (settings: any) => {
+    if (!settings) return { calories: 500, protein: 30, carbs: 60, fats: 15 };
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save settings",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Success",
-        description: "Settings saved successfully",
-      });
-      setUserSettings(editableSettings);
-    }
-    setLoading(false);
+    const baseTdee = settings.base_tdee || 2000;
+    const proteinPerLb = settings.protein_per_lb || 0.8;
+    const carbsPercentage = settings.carbs_percentage || 50;
+    const fatsPercentage = settings.fats_percentage || 30;
+
+    const weight = 160;
+    const dailyProtein = weight * proteinPerLb;
+    const dailyCarbs = (baseTdee * (carbsPercentage / 100)) / 4;
+    const dailyFats = (baseTdee * (fatsPercentage / 100)) / 9;
+
+    const mealDivider = 3;
+
+    return {
+      calories: Math.round(baseTdee / mealDivider),
+      protein: Math.round(dailyProtein / mealDivider),
+      carbs: Math.round(dailyCarbs / mealDivider),
+      fats: Math.round(dailyFats / mealDivider),
+    };
   };
 
   const handleAddExcluded = async (foodName?: string) => {
@@ -272,44 +271,19 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
     }
   };
 
-  const calculateMealTargets = () => {
-    if (!userSettings) return { calories: 500, protein: 30, carbs: 60, fats: 15 };
-
-    const baseTdee = userSettings.base_tdee || 2000;
-    const proteinPerLb = userSettings.protein_per_lb || 0.8;
-    const carbsPercentage = userSettings.carbs_percentage || 50;
-    const fatsPercentage = userSettings.fats_percentage || 30;
-
-    const weight = 160;
-    const dailyProtein = weight * proteinPerLb;
-    const dailyCarbs = (baseTdee * (carbsPercentage / 100)) / 4;
-    const dailyFats = (baseTdee * (fatsPercentage / 100)) / 9;
-
-    const mealDivider = 3;
-
-    return {
-      calories: Math.round(baseTdee / mealDivider),
-      protein: Math.round(dailyProtein / mealDivider),
-      carbs: Math.round(dailyCarbs / mealDivider),
-      fats: Math.round(dailyFats / mealDivider),
-    };
-  };
-
   const handleGetSuggestions = async () => {
     setLoading(true);
     setSuggestions("");
 
     try {
-      const targets = calculateMealTargets();
-
       const { data, error } = await supabase.functions.invoke("suggest-meals", {
         body: {
           userId,
           mealType,
-          targetCalories: targets.calories,
-          targetProtein: targets.protein,
-          targetCarbs: targets.carbs,
-          targetFats: targets.fats,
+          targetCalories: targetMacros.calories,
+          targetProtein: targetMacros.protein,
+          targetCarbs: targetMacros.carbs,
+          targetFats: targetMacros.fats,
         },
       });
 
@@ -349,8 +323,6 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
     }
   };
 
-  const targets = calculateMealTargets();
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -362,9 +334,8 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
         </DialogHeader>
 
         <Tabs defaultValue="suggestions" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="suggestions">Get Suggestions</TabsTrigger>
-            <TabsTrigger value="settings">Target Macros</TabsTrigger>
             <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
             <TabsTrigger value="excluded">Excluded Foods</TabsTrigger>
           </TabsList>
@@ -387,13 +358,39 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Target Macros</label>
-                <div className="bg-muted/50 p-3 rounded-lg text-sm">
-                  <div className="grid grid-cols-2 gap-2">
-                    <span>Calories: {targets.calories}</span>
-                    <span>Protein: {targets.protein}g</span>
-                    <span>Carbs: {targets.carbs}g</span>
-                    <span>Fats: {targets.fats}g</span>
+                <label className="text-sm font-medium">Target Macros for This Meal</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Calories</label>
+                    <Input
+                      type="number"
+                      value={targetMacros.calories}
+                      onChange={(e) => setTargetMacros({ ...targetMacros, calories: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Protein (g)</label>
+                    <Input
+                      type="number"
+                      value={targetMacros.protein}
+                      onChange={(e) => setTargetMacros({ ...targetMacros, protein: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Carbs (g)</label>
+                    <Input
+                      type="number"
+                      value={targetMacros.carbs}
+                      onChange={(e) => setTargetMacros({ ...targetMacros, carbs: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Fats (g)</label>
+                    <Input
+                      type="number"
+                      value={targetMacros.fats}
+                      onChange={(e) => setTargetMacros({ ...targetMacros, fats: Number(e.target.value) })}
+                    />
                   </div>
                 </div>
               </div>
@@ -420,83 +417,6 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
             {suggestions && (
               <div className="bg-muted/50 p-4 rounded-lg space-y-2">
                 <div className="whitespace-pre-wrap text-sm">{suggestions}</div>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-4 mt-4">
-            <p className="text-sm text-muted-foreground">
-              Customize your nutrition targets - these affect your daily and per-meal macro calculations
-            </p>
-
-            {editableSettings && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Base TDEE (Total Daily Energy Expenditure)</label>
-                  <Input
-                    type="number"
-                    value={editableSettings.base_tdee || ''}
-                    onChange={(e) => setEditableSettings({ ...editableSettings, base_tdee: Number(e.target.value) })}
-                    placeholder="e.g., 2026"
-                  />
-                  <p className="text-xs text-muted-foreground">Your daily calorie target in calories</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Protein per lb of body weight</label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={editableSettings.protein_per_lb || ''}
-                    onChange={(e) => setEditableSettings({ ...editableSettings, protein_per_lb: Number(e.target.value) })}
-                    placeholder="e.g., 0.8"
-                  />
-                  <p className="text-xs text-muted-foreground">Grams of protein per pound of body weight</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Carbs Percentage</label>
-                  <Input
-                    type="number"
-                    value={editableSettings.carbs_percentage || ''}
-                    onChange={(e) => setEditableSettings({ ...editableSettings, carbs_percentage: Number(e.target.value) })}
-                    placeholder="e.g., 50"
-                  />
-                  <p className="text-xs text-muted-foreground">Percentage of daily calories from carbs</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Fats Percentage</label>
-                  <Input
-                    type="number"
-                    value={editableSettings.fats_percentage || ''}
-                    onChange={(e) => setEditableSettings({ ...editableSettings, fats_percentage: Number(e.target.value) })}
-                    placeholder="e.g., 30"
-                  />
-                  <p className="text-xs text-muted-foreground">Percentage of daily calories from fats</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Fiber per 1000 Calories</label>
-                  <Input
-                    type="number"
-                    value={editableSettings.fiber_per_1000_cal || ''}
-                    onChange={(e) => setEditableSettings({ ...editableSettings, fiber_per_1000_cal: Number(e.target.value) })}
-                    placeholder="e.g., 14"
-                  />
-                  <p className="text-xs text-muted-foreground">Grams of fiber per 1000 calories</p>
-                </div>
-
-                <Button onClick={handleSaveSettings} disabled={loading} className="w-full">
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save Target Macros"
-                  )}
-                </Button>
               </div>
             )}
           </TabsContent>
