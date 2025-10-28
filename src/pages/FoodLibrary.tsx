@@ -66,6 +66,10 @@ const FoodLibrary = () => {
     }
   }, [user]);
 
+  if (authLoading || !user) {
+    return null;
+  }
+
   const fetchData = async () => {
     if (!user) return;
 
