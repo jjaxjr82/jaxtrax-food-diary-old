@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Plus, Sparkles, Loader2 } from "lucide-react";
+import { X, Plus, Sparkles, Loader2, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface AIFoodPlannerModalProps {
   open: boolean;
@@ -21,7 +23,21 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
   const [mealType, setMealType] = useState("lunch");
   const [suggestions, setSuggestions] = useState("");
   const [userSettings, setUserSettings] = useState<any>(null);
+  const [comboOpen, setComboOpen] = useState(false);
   const { toast } = useToast();
+
+  // Common foods and allergens for autocomplete
+  const commonFoods = [
+    "Peanuts", "Tree Nuts (almonds, walnuts, cashews)", "Dairy (milk, cheese, yogurt)", 
+    "Eggs", "Soy", "Wheat", "Gluten", "Shellfish (shrimp, crab, lobster)", 
+    "Fish (salmon, tuna, cod)", "Sesame", "Corn", "Red Meat (beef, pork, lamb)",
+    "Chicken", "Turkey", "Mushrooms", "Tomatoes", "Onions", "Garlic",
+    "Bell Peppers", "Spicy Foods", "Coconut", "Avocado", "Bananas",
+    "Citrus Fruits (oranges, lemons)", "Berries (strawberries, blueberries)",
+    "Chocolate", "Coffee", "Alcohol", "Sugar", "Artificial Sweeteners",
+    "Processed Foods", "Fried Foods", "Fast Food", "Beans", "Lentils",
+    "Broccoli", "Cauliflower", "Brussels Sprouts", "Cabbage", "Kale"
+  ].sort();
 
   useEffect(() => {
     if (open) {
@@ -54,15 +70,26 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
     }
   };
 
-  const handleAddExcluded = async () => {
-    if (!newFood.trim()) return;
+  const handleAddExcluded = async (foodName?: string) => {
+    const foodToAdd = foodName || newFood.trim();
+    if (!foodToAdd) return;
+
+    // Validate input length
+    if (foodToAdd.length > 100) {
+      toast({
+        title: "Error",
+        description: "Food name must be less than 100 characters",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
     const { error } = await supabase
       .from("excluded_foods")
       .insert({
         user_id: userId,
-        food_name: newFood.trim(),
+        food_name: foodToAdd,
       });
 
     if (error) {
@@ -74,9 +101,10 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
     } else {
       toast({
         title: "Success",
-        description: `Added ${newFood} to excluded foods`,
+        description: `Added ${foodToAdd} to excluded foods`,
       });
       setNewFood("");
+      setComboOpen(false);
       fetchExcludedFoods();
     }
     setLoading(false);
@@ -259,17 +287,66 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
             </p>
             
             <div className="flex gap-2">
-              <Input
-                placeholder="e.g., peanuts, dairy, shellfish"
-                value={newFood}
-                onChange={(e) => setNewFood(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleAddExcluded();
-                  }
-                }}
-              />
-              <Button onClick={handleAddExcluded} disabled={loading || !newFood.trim()}>
+              <Popover open={comboOpen} onOpenChange={setComboOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={comboOpen}
+                    className="flex-1 justify-between"
+                  >
+                    {newFood || "Select or type a food..."}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput 
+                      placeholder="Search or type a food..." 
+                      value={newFood}
+                      onValueChange={setNewFood}
+                    />
+                    <CommandList>
+                      <CommandEmpty>
+                        {newFood && (
+                          <div className="py-2 px-3 text-sm">
+                            Press Enter or Add to use "{newFood}"
+                          </div>
+                        )}
+                      </CommandEmpty>
+                      <CommandGroup heading="Common Foods & Allergens">
+                        {commonFoods
+                          .filter(food => 
+                            food.toLowerCase().includes(newFood.toLowerCase())
+                          )
+                          .map((food) => (
+                            <CommandItem
+                              key={food}
+                              value={food}
+                              onSelect={(value) => {
+                                setNewFood(value);
+                                handleAddExcluded(value);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  excludedFoods.some(f => f.food_name.toLowerCase() === food.toLowerCase())
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {food}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <Button 
+                onClick={() => handleAddExcluded()} 
+                disabled={loading || !newFood.trim()}
+              >
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
