@@ -40,10 +40,18 @@ const TrackerHeader = ({
         {/* Single row header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tighter text-primary uppercase leading-none text-condensed">
-              MINDFLOW
+            <h1 className="text-5xl font-impact leading-none tracking-tight uppercase mb-1" 
+                style={{
+                  background: 'linear-gradient(to bottom, #FF0000, #8B0000)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  textShadow: '2px 4px 6px rgba(0, 0, 0, 0.9)',
+                  fontWeight: 900
+                }}>
+              MindFlow
             </h1>
-            <p className="text-xs text-muted-foreground mt-1">From Chaos to Clarity</p>
+            <p className="text-sm text-muted-foreground">From Chaos to Clarity</p>
           </div>
           
           <div className="flex items-center gap-2 flex-wrap">
