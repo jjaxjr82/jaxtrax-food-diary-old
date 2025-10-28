@@ -126,25 +126,25 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
         <div className="text-center bg-gray-50 p-4 rounded-lg">
           <span className="text-sm text-gray-500 block">Protein</span>
           <div className="text-2xl font-bold text-[#002855]">
-            {totals.protein.toFixed(1)}/{proteinGoal ? proteinGoal.toFixed(1) : "--"}g
+            {totals.protein.toFixed(0)}/{proteinGoal ? proteinGoal.toFixed(0) : "--"}g
           </div>
         </div>
         <div className="text-center bg-gray-50 p-4 rounded-lg">
           <span className="text-sm text-gray-500 block">Carbs</span>
           <div className="text-2xl font-bold text-[#002855]">
-            {totals.carbs.toFixed(1)}/{carbsGoal ? carbsGoal.toFixed(1) : "--"}g
+            {totals.carbs.toFixed(0)}/{carbsGoal ? carbsGoal.toFixed(0) : "--"}g
           </div>
         </div>
         <div className="text-center bg-gray-50 p-4 rounded-lg">
           <span className="text-sm text-gray-500 block">Fats</span>
           <div className="text-2xl font-bold text-[#002855]">
-            {totals.fats.toFixed(1)}/{fatsGoal ? fatsGoal.toFixed(1) : "--"}g
+            {totals.fats.toFixed(0)}/{fatsGoal ? fatsGoal.toFixed(0) : "--"}g
           </div>
         </div>
         <div className="text-center bg-gray-50 p-4 rounded-lg">
           <span className="text-sm text-gray-500 block">Fiber</span>
           <div className="text-2xl font-bold text-[#002855]">
-            {totals.fiber.toFixed(1)}/{fiberGoal ? fiberGoal.toFixed(1) : "--"}g
+            {totals.fiber.toFixed(0)}/{fiberGoal ? fiberGoal.toFixed(0) : "--"}g
           </div>
         </div>
         <div className="text-center bg-gray-50 p-4 rounded-lg">
