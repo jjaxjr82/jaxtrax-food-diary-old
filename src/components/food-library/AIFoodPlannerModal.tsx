@@ -143,7 +143,7 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
       const calculatedTargets = calculateMealTargets(userSettings, todaysMeals);
       setTargetMacros(calculatedTargets);
     }
-  }, [userSettings, todaysMeals]);
+  }, [userSettings, todaysMeals, mealType]);
 
   const calculateMealTargets = (settings: any, meals: any[]) => {
     if (!settings) return { calories: 500, protein: 30, carbs: 60, fats: 15 };
@@ -159,6 +159,14 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
     const dailyProtein = weight * proteinPerLb;
     const dailyCarbs = (baseTdee * (carbsPercentage / 100)) / 4;
     const dailyFats = (baseTdee * (fatsPercentage / 100)) / 9;
+
+    // Typical meal distribution percentages
+    const mealDistribution: { [key: string]: number } = {
+      breakfast: 0.25,
+      lunch: 0.35,
+      dinner: 0.35,
+      snack: 0.05,
+    };
 
     // Calculate what's already been consumed today
     const consumed = meals.reduce(
@@ -179,15 +187,36 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
       fats: Math.max(0, dailyFats - consumed.fats),
     };
 
-    // Count how many meals are typically left in the day
-    const mealsLogged = meals.length;
-    const estimatedRemainingMeals = Math.max(1, 3 - mealsLogged);
+    // Get the distribution for the selected meal type
+    const mealPercentage = mealDistribution[mealType] || 0.33;
+
+    // If there's still enough budget, use the typical meal percentage
+    // Otherwise, suggest what's remaining
+    const targetCalories = Math.min(
+      Math.round(dailyCalories * mealPercentage),
+      remaining.calories
+    );
+
+    const targetProtein = Math.min(
+      Math.round(dailyProtein * mealPercentage),
+      remaining.protein
+    );
+
+    const targetCarbs = Math.min(
+      Math.round(dailyCarbs * mealPercentage),
+      remaining.carbs
+    );
+
+    const targetFats = Math.min(
+      Math.round(dailyFats * mealPercentage),
+      remaining.fats
+    );
 
     return {
-      calories: Math.round(remaining.calories / estimatedRemainingMeals),
-      protein: Math.round(remaining.protein / estimatedRemainingMeals),
-      carbs: Math.round(remaining.carbs / estimatedRemainingMeals),
-      fats: Math.round(remaining.fats / estimatedRemainingMeals),
+      calories: targetCalories,
+      protein: targetProtein,
+      carbs: targetCarbs,
+      fats: targetFats,
     };
   };
 
