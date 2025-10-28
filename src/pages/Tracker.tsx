@@ -20,28 +20,7 @@ const Tracker = () => {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Show redirect message if not authenticated
-  if (!authLoading && !user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center">
-        <div className="text-center space-y-4 p-8 rounded-lg bg-card border shadow-lg max-w-md">
-          <h2 className="text-2xl font-bold">Authentication Required</h2>
-          <p className="text-muted-foreground">
-            Redirecting to JAXTRAX authentication in {redirectCountdown} seconds...
-          </p>
-          <div className="pt-4">
-            <a 
-              href="https://www.jaxtrax.net/auth" 
-              className="text-primary hover:underline"
-            >
-              Click here if not redirected automatically
-            </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const [lockDay, setLockDay] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -143,7 +122,27 @@ const Tracker = () => {
     { calories: 0, protein: 0, carbs: 0, fats: 0, fiber: 0 }
   );
 
-  const [lockDay, setLockDay] = useState(false);
+  // Show redirect message if not authenticated
+  if (!authLoading && !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center">
+        <div className="text-center space-y-4 p-8 rounded-lg bg-card border shadow-lg max-w-md">
+          <h2 className="text-2xl font-bold">Authentication Required</h2>
+          <p className="text-muted-foreground">
+            Redirecting to JAXTRAX authentication in {redirectCountdown} seconds...
+          </p>
+          <div className="pt-4">
+            <a 
+              href="https://www.jaxtrax.net/auth" 
+              className="text-primary hover:underline"
+            >
+              Click here if not redirected automatically
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleResetData = async () => {
     if (!user) return;
