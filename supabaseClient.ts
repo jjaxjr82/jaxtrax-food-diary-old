@@ -13,7 +13,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 supabase.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_OUT" || event === "USER_DELETED") {
+  if (event === "SIGNED_OUT") {
     // Delete cookies
     document.cookie = `my-access-token=; Domain=.jaxtrax.net; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax; Secure`;
     document.cookie = `my-refresh-token=; Domain=.jaxtrax.net; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax; Secure`;
