@@ -10,6 +10,9 @@ import type { ConfirmedFood, Recipe } from "@/types";
 import LogConfirmedFoodModal from "@/components/food-library/LogConfirmedFoodModal";
 import EditConfirmedFoodModal from "@/components/food-library/EditConfirmedFoodModal";
 import EditRecipeModal from "@/components/food-library/EditRecipeModal";
+import ExcludedFoodsSection from "@/components/food-library/ExcludedFoodsSection";
+import MealSuggestionsSection from "@/components/food-library/MealSuggestionsSection";
+import MealPrepPlanning from "@/components/food-library/MealPrepPlanning";
 import { getTodayInEastern } from "@/lib/dateUtils";
 import {
   AlertDialog,
@@ -182,6 +185,15 @@ const FoodLibrary = () => {
         </header>
 
         <div className="space-y-6">
+          {/* AI Features Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ExcludedFoodsSection userId={user!.id} />
+            <MealSuggestionsSection userId={user!.id} />
+          </div>
+
+          <MealPrepPlanning userId={user!.id} confirmedFoods={confirmedFoods} />
+
+          {/* Search */}
           <div className="bg-card/60 backdrop-blur-md rounded-xl shadow-elegant border border-border/50 p-4">
             <Input
               type="text"

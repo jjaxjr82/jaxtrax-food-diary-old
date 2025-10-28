@@ -2,3 +2,6 @@ project_id = "hlgcheceiijuwlvetlvc"
 
 [functions.analyze-food]
 verify_jwt = true
+
+[functions.suggest-meals]
+verify_jwt = true
