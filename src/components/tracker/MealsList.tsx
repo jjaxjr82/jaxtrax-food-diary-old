@@ -3,8 +3,9 @@ import type { Meal } from "@/types";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Trash2, Copy, Plus, Check, ChefHat } from "lucide-react";
+import { Pencil, Trash2, Copy, Plus, Check, ChefHat, Calendar } from "lucide-react";
 import EditMealDialog from "./EditMealDialog";
+import CopyFoodItemModal from "./CopyFoodItemModal";
 import CopyMealModal from "./CopyMealModal";
 import QuickAddModal from "./QuickAddModal";
 import CreateRecipeModal from "./CreateRecipeModal";
@@ -22,7 +23,12 @@ interface MealsListProps {
 const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled, userId, selectedDate }: MealsListProps) => {
   const { toast } = useToast();
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
-  const [copyingMeal, setCopyingMeal] = useState<Meal | null>(null);
+  const [copyingFoodItem, setCopyingFoodItem] = useState<Meal | null>(null);
+  const [copyingEntireMeal, setCopyingEntireMeal] = useState<{ open: boolean; mealType: string; meals: Meal[] }>({
+    open: false,
+    mealType: "",
+    meals: [],
+  });
   const [quickAddModal, setQuickAddModal] = useState<{ open: boolean; mealType: string }>({
     open: false,
     mealType: "Breakfast",
@@ -233,16 +239,28 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled, userId, select
                         </Button>
                       )}
                       {!isEmpty && (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => setCreateRecipeModal({ open: true, mealType: type })}
-                          disabled={disabled}
-                          className="h-8 text-xs"
-                        >
-                          <ChefHat className="h-3 w-3 mr-1" />
-                          Create Recipe
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setCopyingEntireMeal({ open: true, mealType: type, meals: typeMeals })}
+                            disabled={disabled}
+                            className="h-8 text-xs"
+                          >
+                            <Calendar className="h-3 w-3 mr-1" />
+                            Copy Meal
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setCreateRecipeModal({ open: true, mealType: type })}
+                            disabled={disabled}
+                            className="h-8 text-xs"
+                          >
+                            <ChefHat className="h-3 w-3 mr-1" />
+                            Create Recipe
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -281,9 +299,9 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled, userId, select
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => setCopyingMeal(meal)}
+                                  onClick={() => setCopyingFoodItem(meal)}
                                   disabled={disabled}
-                                  title="Copy to another meal"
+                                  title="Copy food item to another day/meal"
                                 >
                                   <Copy className="h-4 w-4" />
                                 </Button>
@@ -337,11 +355,20 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled, userId, select
         onSave={onMealUpdate}
       />
 
-      <CopyMealModal
-        meal={copyingMeal}
-        open={!!copyingMeal}
-        onOpenChange={(open) => !open && setCopyingMeal(null)}
+      <CopyFoodItemModal
+        meal={copyingFoodItem}
+        open={!!copyingFoodItem}
+        onOpenChange={(open) => !open && setCopyingFoodItem(null)}
         onSuccess={onMealUpdate}
+      />
+
+      <CopyMealModal
+        mealType={copyingEntireMeal.mealType}
+        meals={copyingEntireMeal.meals}
+        open={copyingEntireMeal.open}
+        onOpenChange={(open) => setCopyingEntireMeal({ ...copyingEntireMeal, open })}
+        onSuccess={onMealUpdate}
+        userId={userId}
       />
 
       <QuickAddModal

@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,28 +12,27 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Meal } from "@/types";
 
-interface CopyMealModalProps {
-  mealType: string;
-  meals: Meal[];
+interface CopyFoodItemModalProps {
+  meal: Meal | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
-  userId: string;
 }
 
-const CopyMealModal = ({ mealType, meals, open, onOpenChange, onSuccess, userId }: CopyMealModalProps) => {
+const CopyFoodItemModal = ({ meal, open, onOpenChange, onSuccess }: CopyFoodItemModalProps) => {
   const { toast } = useToast();
+  const [targetMealType, setTargetMealType] = useState<string>("Breakfast");
   const [targetDate, setTargetDate] = useState<Date>(new Date());
+
+  if (!meal) return null;
 
   const handleCopy = async () => {
     try {
       const formattedDate = format(targetDate, 'yyyy-MM-dd');
-      
-      // Copy all meals of this type to the target date
-      const mealsToInsert = meals.map(meal => ({
-        user_id: userId,
+      const { error } = await supabase.from("meals").insert({
+        user_id: meal.user_id,
         date: formattedDate,
-        meal_type: meal.meal_type,
+        meal_type: targetMealType,
         food_name: meal.food_name,
         quantity: meal.quantity,
         calories: meal.calories,
@@ -45,24 +45,22 @@ const CopyMealModal = ({ mealType, meals, open, onOpenChange, onSuccess, userId 
         is_recipe: meal.is_recipe,
         recipe_id: meal.recipe_id,
         supplement_id: meal.supplement_id,
-      }));
-
-      const { error } = await supabase.from("meals").insert(mealsToInsert);
+      });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: `${mealType} copied to ${format(targetDate, 'MMM d, yyyy')} (${meals.length} items)`,
+        description: `Food item copied to ${targetMealType} on ${format(targetDate, 'MMM d, yyyy')}`,
       });
 
       onOpenChange(false);
       onSuccess();
     } catch (error) {
-      console.error("Error copying meal:", error);
+      console.error("Error copying food item:", error);
       toast({
         title: "Error",
-        description: "Failed to copy meal",
+        description: "Failed to copy food item",
         variant: "destructive",
       });
     }
@@ -72,13 +70,13 @@ const CopyMealModal = ({ mealType, meals, open, onOpenChange, onSuccess, userId 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Copy {mealType}</DialogTitle>
+          <DialogTitle>Copy Food Item</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
             <p className="text-sm text-muted-foreground mb-2">
-              Copy all {meals.length} item(s) from {mealType} to a different day
+              Copy "{meal.food_name}" to a different day and meal
             </p>
           </div>
 
@@ -107,19 +105,32 @@ const CopyMealModal = ({ mealType, meals, open, onOpenChange, onSuccess, userId 
               </PopoverContent>
             </Popover>
           </div>
+
+          <div>
+            <Label>Target Meal</Label>
+            <Select value={targetMealType} onValueChange={setTargetMealType}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Breakfast">Breakfast</SelectItem>
+                <SelectItem value="Lunch">Lunch</SelectItem>
+                <SelectItem value="Dinner">Dinner</SelectItem>
+                <SelectItem value="Snack">Snack</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleCopy} disabled={meals.length === 0}>
-            Copy {mealType}
-          </Button>
+          <Button onClick={handleCopy}>Copy Food Item</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default CopyMealModal;
+export default CopyFoodItemModal;
