@@ -36,7 +36,7 @@ const TrackerHeader = ({
 
   return (
     <>
-      <header className="mb-4">
+      <header className="mb-2">
         {/* Single row header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 py-2">
           <div>
