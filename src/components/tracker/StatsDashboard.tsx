@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../../../supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, TrendingDown, Minus, Calendar, Award, Flame } from "lucide-react";

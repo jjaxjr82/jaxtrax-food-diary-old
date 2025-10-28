@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { DailyStats, UserSettings } from "@/types";
-import { supabase } from "../../../supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
