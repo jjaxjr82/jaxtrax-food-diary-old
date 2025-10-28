@@ -6,6 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Scan } from "lucide-react";
+import BarcodeScanner from "@/components/BarcodeScanner";
+import { fetchNutritionByBarcode } from "@/services/foodDatabase";
 import type { ConfirmedFood } from "@/types";
 
 interface ManualAddFoodModalProps {
@@ -25,6 +28,7 @@ const ManualAddFoodModal = ({
 }: ManualAddFoodModalProps) => {
   const { toast } = useToast();
   const [mealType, setMealType] = useState<"Breakfast" | "Lunch" | "Dinner" | "Snack">("Breakfast");
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [formData, setFormData] = useState({
     food_name: "",
     quantity: "",
@@ -49,6 +53,41 @@ const ManualAddFoodModal = ({
       setMealType("Breakfast");
     }
   }, [open]);
+
+  const handleBarcodeScanned = async (barcode: string) => {
+    try {
+      const nutritionData = await fetchNutritionByBarcode(barcode);
+      
+      if (nutritionData) {
+        setFormData({
+          food_name: nutritionData.foodName,
+          quantity: nutritionData.quantity,
+          calories: nutritionData.calories.toString(),
+          protein: nutritionData.protein.toString(),
+          carbs: nutritionData.carbs.toString(),
+          fats: nutritionData.fats.toString(),
+          fiber: nutritionData.fiber.toString(),
+        });
+        toast({
+          title: "Product found!",
+          description: `Loaded: ${nutritionData.foodName}`,
+        });
+      } else {
+        toast({
+          title: "Product not found",
+          description: "Please enter nutrition information manually",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error processing barcode:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch product data",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,12 +153,24 @@ const ManualAddFoodModal = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Manual Add Food</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              Manual Add Food
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setScannerOpen(true)}
+              >
+                <Scan className="h-4 w-4 mr-2" />
+                Scan Barcode
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="meal-type">Meal Type</Label>
             <Select value={mealType} onValueChange={(value: any) => setMealType(value)}>
@@ -230,6 +281,13 @@ const ManualAddFoodModal = ({
         </form>
       </DialogContent>
     </Dialog>
+
+    <BarcodeScanner
+      open={scannerOpen}
+      onOpenChange={setScannerOpen}
+      onScan={handleBarcodeScanned}
+    />
+    </>
   );
 };
 
