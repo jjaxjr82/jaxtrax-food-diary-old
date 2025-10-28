@@ -36,14 +36,14 @@ const TrackerHeader = ({
 
   return (
     <>
-      <header className="mb-6">
+      <header className="mb-4">
         {/* Single row header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 py-3">
           <div>
-            <h1 className="text-5xl sm:text-6xl font-black tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent uppercase">
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent uppercase leading-none">
               JaxTrax
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">Your daily guide to mindful nutrition</p>
+            <p className="text-xs text-muted-foreground mt-1">Your daily guide to mindful nutrition</p>
           </div>
           
           <div className="flex items-center gap-2 flex-wrap">
@@ -84,7 +84,7 @@ const TrackerHeader = ({
         </div>
 
         {/* Date navigation and controls */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-border/40">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-3 mt-3 border-t border-border/40">
           <div className="flex items-center gap-3 bg-card/80 backdrop-blur-sm p-2 rounded-xl shadow-elegant border border-border/50">
             <button
               onClick={() => changeDate(-1)}
