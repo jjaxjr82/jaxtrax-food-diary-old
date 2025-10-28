@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ExportModal from "./ExportModal";
 import { useState } from "react";
 import { getDateInEastern } from "@/lib/dateUtils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import StatsDashboard from "./StatsDashboard";
 
 interface TrackerHeaderProps {
   selectedDate: string;
@@ -26,6 +28,7 @@ const TrackerHeader = ({
 }: TrackerHeaderProps) => {
   const navigate = useNavigate();
   const [exportOpen, setExportOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
 
   const changeDate = (days: number) => {
     setSelectedDate(getDateInEastern(selectedDate, days));
@@ -44,6 +47,15 @@ const TrackerHeader = ({
           </div>
           
           <div className="flex items-center gap-2">
+            <Button 
+              onClick={() => setStatsOpen(true)} 
+              variant="outline" 
+              size="sm"
+              className="shadow-sm hover:shadow-md transition-shadow"
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Stats
+            </Button>
             <Button 
               onClick={() => navigate("/food-library")} 
               variant="outline" 
@@ -123,6 +135,18 @@ const TrackerHeader = ({
       </header>
 
       <ExportModal open={exportOpen} onOpenChange={setExportOpen} userId={userId} />
+      
+      <Dialog open={statsOpen} onOpenChange={setStatsOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Your Stats
+            </DialogTitle>
+          </DialogHeader>
+          <StatsDashboard userId={userId} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
