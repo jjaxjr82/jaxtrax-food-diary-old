@@ -29,7 +29,7 @@ serve(async (req) => {
     // Helper function to search USDA FoodData Central
     async function searchUSDA(foodName: string) {
       try {
-        const searchUrl = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query=${encodeURIComponent(foodName)}&pageSize=1&dataType=Survey (FNDDS)`;
+        const searchUrl = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query=${encodeURIComponent(foodName)}&pageSize=3`;
         const response = await fetch(searchUrl);
         
         if (!response.ok) return null;
@@ -40,7 +40,7 @@ serve(async (req) => {
         const food = data.foods[0];
         const nutrients = food.foodNutrients || [];
         
-        // Extract key nutrients
+        // Extract key nutrients per 100g
         const getNeeded = (name: string) => {
           const nutrient = nutrients.find((n: any) => n.nutrientName.includes(name));
           return nutrient ? parseFloat(nutrient.value.toFixed(1)) : 0;
@@ -52,11 +52,36 @@ serve(async (req) => {
           carbs: getNeeded("Carbohydrate") || 0,
           fats: getNeeded("Total lipid") || 0,
           fiber: getNeeded("Fiber") || 0,
+          source: food.dataType || "USDA"
         };
       } catch (error) {
         console.error("USDA API error:", error);
         return null;
       }
+    }
+    
+    // Helper to validate nutritional data reasonableness
+    function validateNutrition(data: any, foodName: string) {
+      const { calories, protein, carbs, fats } = data;
+      
+      // Basic sanity checks
+      const calculatedCals = (protein * 4) + (carbs * 4) + (fats * 9);
+      const difference = Math.abs(calories - calculatedCals);
+      const percentDiff = (difference / calories) * 100;
+      
+      // If calorie calculation is way off (>30%), flag as suspicious
+      if (percentDiff > 30) {
+        console.warn(`Suspicious nutrition data for ${foodName}: ${percentDiff}% difference in calories`);
+        return false;
+      }
+      
+      // Check for unrealistic values
+      if (calories > 1000 || protein > 100 || carbs > 100 || fats > 100) {
+        console.warn(`Unrealistic values for ${foodName}`);
+        return false;
+      }
+      
+      return true;
     }
     
     const confirmedHistory = confirmedFoods?.length 
@@ -76,42 +101,42 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "claude-sonnet-4-5",
         messages: [
           {
             role: "system",
-            content: `You are a nutrition analysis assistant. When given a description of a meal, extract all individual food items and provide detailed nutritional information for each.${confirmedHistory}
+            content: `You are a precise nutrition analysis expert. Extract food items and provide ACCURATE nutritional data per serving.${confirmedHistory}
 
-Return ONLY valid JSON in this format:
+CRITICAL ACCURACY RULES:
+- For BRANDED foods (e.g., "Sociables Crackers"), use real package nutrition facts
+- For GENERIC foods, provide accurate USDA-level data
+- Validate: calories should roughly equal (protein×4) + (carbs×4) + (fats×9)
+- Common serving sizes: 1 cracker ≈ 5-15 cal, 1 oz chips ≈ 140-160 cal, 1 egg ≈ 70 cal
+
+Return ONLY valid JSON:
 {
   "foods": [
     {
-      "foodName": "Banana",
-      "quantity": "1 medium",
-      "calories": 105,
-      "protein": 1.3,
-      "carbs": 27,
-      "fats": 0.4,
-      "fiber": 3.1,
+      "foodName": "Sociables Crackers",
+      "quantity": "5 crackers",
+      "calories": 70,
+      "protein": 1,
+      "carbs": 10,
+      "fats": 3,
+      "fiber": 0.5,
       "mealType": "Snack"
     }
   ]
 }
 
-Important formatting rules:
-- Food names: Use Title Case (e.g., "Chicken Breast", "Greek Yogurt", "Peanut Butter")
-- Quantities: Use standard abbreviations:
-  * g (grams), oz (ounces), lb (pounds)
-  * cup/cups, tbsp (tablespoon), tsp (teaspoon)
-  * slice/slices, piece/pieces
-  * small, medium, large (for sizes)
-  * Examples: "4 oz", "1 cup", "2 tbsp", "100g", "1 medium"
-- Extract each food item separately
-- Determine appropriate mealType for each item (Breakfast, Lunch, Dinner, or Snack)
-- If the food matches a confirmed food in the database, use EXACTLY those nutritional values
-- Provide realistic nutritional values per serving for new foods
-- Round nutritional values to 1 decimal place
-- Return ONLY the JSON object, no explanations or markdown`
+Format rules:
+- Title Case food names
+- Standard quantities: "g", "oz", "cup", "tbsp", "medium", etc.
+- Separate each food item
+- Choose mealType: Breakfast, Lunch, Dinner, or Snack
+- Use confirmed food values when matched
+- Round to 1 decimal place
+- NO markdown, just JSON`
           },
           {
             role: "user",
@@ -156,16 +181,17 @@ Important formatting rules:
         .join(' ');
     };
     
-    // Enhance with USDA data and check confirmed foods
+    // Cross-reference and validate nutrition data
     if (parsed.foods) {
       parsed.foods = await Promise.all(parsed.foods.map(async (item: any) => {
-        // First check confirmed foods
+        // Priority 1: Check confirmed foods (user's personal database)
         const confirmedMatch = confirmedFoods?.find(cf => 
           cf.food_name.toLowerCase() === item.foodName.toLowerCase() &&
           cf.quantity === item.quantity
         );
         
         if (confirmedMatch) {
+          console.log(`Using confirmed food: ${item.foodName}`);
           return {
             ...item,
             foodName: toTitleCase(item.foodName),
@@ -174,36 +200,57 @@ Important formatting rules:
             carbs: confirmedMatch.carbs,
             fats: confirmedMatch.fats,
             fiber: confirmedMatch.fiber,
-            isConfirmed: true
+            isConfirmed: true,
+            dataSource: "Your Library"
           };
         }
         
-        // Then try USDA for accurate data
+        // Priority 2: Try USDA for generic foods
         const usdaData = await searchUSDA(item.foodName);
         
-        if (usdaData && usdaData.calories > 0) {
-          // Scale nutrients based on quantity if it differs from 100g
-          const scaleFactor = item.quantity.includes('100g') || item.quantity.includes('100 g') ? 1 : 1;
+        // Priority 3: Cross-reference AI vs USDA
+        let finalData = { ...item };
+        let dataSource = "AI (Claude Sonnet 4.5)";
+        
+        if (usdaData && usdaData.calories > 10) {
+          // We have both AI and USDA data - compare them
+          const aiValid = validateNutrition(item, item.foodName);
+          const usdaValid = validateNutrition(usdaData, item.foodName);
           
-          return {
-            ...item,
-            foodName: toTitleCase(item.foodName),
-            calories: Math.round(usdaData.calories * scaleFactor),
-            protein: parseFloat((usdaData.protein * scaleFactor).toFixed(1)),
-            carbs: parseFloat((usdaData.carbs * scaleFactor).toFixed(1)),
-            fats: parseFloat((usdaData.fats * scaleFactor).toFixed(1)),
-            fiber: parseFloat((usdaData.fiber * scaleFactor).toFixed(1)),
-            isConfirmed: false,
-            source: "USDA"
-          };
+          if (usdaValid && aiValid) {
+            // Both valid - average them for better accuracy
+            finalData = {
+              ...item,
+              calories: Math.round((item.calories + usdaData.calories) / 2),
+              protein: parseFloat(((item.protein + usdaData.protein) / 2).toFixed(1)),
+              carbs: parseFloat(((item.carbs + usdaData.carbs) / 2).toFixed(1)),
+              fats: parseFloat(((item.fats + usdaData.fats) / 2).toFixed(1)),
+              fiber: parseFloat(((item.fiber + usdaData.fiber) / 2).toFixed(1)),
+            };
+            dataSource = "Cross-Referenced (AI + USDA)";
+            console.log(`Cross-referenced: ${item.foodName}`);
+          } else if (usdaValid) {
+            // USDA more trustworthy
+            finalData = { ...item, ...usdaData };
+            dataSource = "USDA Database";
+            console.log(`Using USDA: ${item.foodName}`);
+          } else {
+            console.log(`Using AI: ${item.foodName}`);
+          }
+        } else {
+          // No USDA data - validate AI estimate
+          const aiValid = validateNutrition(item, item.foodName);
+          if (!aiValid) {
+            console.warn(`Questionable AI data for: ${item.foodName}`);
+            dataSource = "AI (Needs Review)";
+          }
         }
         
-        // Fall back to AI estimate
         return {
-          ...item,
+          ...finalData,
           foodName: toTitleCase(item.foodName),
           isConfirmed: false,
-          source: "AI Estimate"
+          dataSource
         };
       }));
     }
