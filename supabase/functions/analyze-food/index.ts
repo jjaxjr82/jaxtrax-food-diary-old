@@ -101,7 +101,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5",
+        model: "openai/gpt-5",
         messages: [
           {
             role: "system",
@@ -235,14 +235,14 @@ Format rules:
             dataSource = "USDA Database";
             console.log(`Using USDA: ${item.foodName}`);
           } else {
-            console.log(`Using AI: ${item.foodName}`);
+            console.log(`Using AI (GPT-5): ${item.foodName}`);
           }
         } else {
           // No USDA data - validate AI estimate
           const aiValid = validateNutrition(item, item.foodName);
           if (!aiValid) {
             console.warn(`Questionable AI data for: ${item.foodName}`);
-            dataSource = "AI (Needs Review)";
+            dataSource = "AI (GPT-5 - Needs Review)";
           }
         }
         
