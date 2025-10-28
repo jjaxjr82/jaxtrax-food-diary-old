@@ -36,119 +36,40 @@ const TrackerHeader = ({
 
   return (
     <>
-      <header className="mb-4">
-        {/* Single row header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <div>
-            <h1 className="text-5xl font-impact leading-none tracking-tight uppercase mb-1 text-gradient-red font-black">
-              Fuel Tracker
-            </h1>
-            <p className="text-sm text-muted-foreground">Power Your Performance</p>
-          </div>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button 
-              onClick={() => setStatsOpen(true)} 
-              variant="outline" 
-              size="sm"
-              className="font-semibold uppercase"
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Stats
-            </Button>
-            <Button 
-              onClick={() => navigate("/food-library")} 
-              variant="outline" 
-              size="sm"
-              className="font-semibold uppercase"
-            >
-              My Library
-            </Button>
-            <Button 
-              onClick={() => setExportOpen(true)} 
-              variant="outline" 
-              size="sm"
-              className="font-semibold uppercase"
-            >
-              Export
-            </Button>
-            <Button 
-              onClick={signOut} 
-              variant="ghost" 
-              size="sm"
-              className="text-muted-foreground hover:text-destructive font-semibold uppercase"
-            >
-              Sign Out
-            </Button>
-          </div>
-        </div>
-
-        {/* Date navigation and controls */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-1 mt-1 border-t border-border/40">
-          <div className="flex items-center gap-3 bg-card/80 backdrop-blur-sm p-2 rounded-xl shadow-elegant border border-border/50">
-            <button
-              onClick={() => changeDate(-1)}
-              className="p-2 rounded-lg hover:bg-muted transition-all hover:scale-105 active:scale-95"
-              title="Previous Day"
-            >
-              <ChevronLeft className="h-5 w-5 text-muted-foreground" />
-            </button>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 text-foreground font-medium text-sm px-2"
-            />
-            <button
-              onClick={() => changeDate(1)}
-              className="p-2 rounded-lg hover:bg-muted transition-all hover:scale-105 active:scale-95"
-              title="Next Day"
-            >
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-elegant border border-border/50">
-              <input
-                type="checkbox"
-                id="lock-day"
-                checked={lockDay}
-                onChange={(e) => onLockDayChange(e.target.checked)}
-                className="h-4 w-4 rounded border-muted-foreground text-primary focus:ring-primary focus:ring-offset-0"
-              />
-              <label htmlFor="lock-day" className="text-sm font-medium text-muted-foreground cursor-pointer">
-                Lock Day
-              </label>
-            </div>
-            
-            <Button 
-              onClick={onResetData} 
-              variant="ghost" 
-              size="sm"
-              className="text-xs text-muted-foreground hover:text-destructive"
-            >
-              Reset Data
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <ExportModal open={exportOpen} onOpenChange={setExportOpen} userId={userId} />
-      
-      <Dialog open={statsOpen} onOpenChange={setStatsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Your Stats
-            </DialogTitle>
-          </DialogHeader>
-          <StatsDashboard userId={userId} />
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-};
-
-export default TrackerHeader;
+      <header className="mb-6 pb-6 border-b border-border">
+  <div className="flex items-start justify-between mb-6">
+    <div>
+      <h1 
+        className="text-5xl font-impact leading-none tracking-tight uppercase mb-1"
+        style={{ 
+          background: 'linear-gradient(180deg, #FF0000 0%, #8B0000 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          filter: 'drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.9))',
+          fontWeight: '900'
+        }}
+      >
+        MindFlow
+      </h1>
+      <p className="text-sm text-muted-foreground">
+        From Chaos to Clarity
+      </p>
+    </div>
+    <div className="flex gap-2">
+      <Button variant="outline" size="sm" className="border-border">
+        <Target className="h-4 w-4 mr-2" />
+        Stats
+      </Button>
+      <Button variant="outline" size="sm" className="border-border">
+        My Library
+      </Button>
+      <Button variant="outline" size="sm" className="border-border">
+        Export
+      </Button>
+      <Button variant="ghost" size="sm" className="text-muted-foreground">
+        Sign Out
+      </Button>
+    </div>
+  </div>
+</header>
