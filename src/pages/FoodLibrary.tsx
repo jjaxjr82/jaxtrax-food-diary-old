@@ -159,210 +159,222 @@ const FoodLibrary = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto max-w-5xl px-4 py-8">
-        <header className="flex justify-between items-center mb-10">
-          <Button
-            onClick={() => navigate("/tracker")}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Back to Daily Log
-          </Button>
-          <h1 className="text-4xl font-bold text-[#002855]">My Food Library</h1>
-          <div className="w-40"></div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <header className="mb-8 pb-6 border-b border-border/40">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <Button
+              onClick={() => navigate("/tracker")}
+              variant="outline"
+              className="flex items-center gap-2 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back to Tracker
+            </Button>
+            <div className="space-y-1">
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">
+                My Food Library
+              </h1>
+              <p className="text-sm text-muted-foreground">Your confirmed foods and recipes</p>
+            </div>
+            <div className="w-32"></div>
+          </div>
         </header>
 
-        <div className="mb-4">
-          <Input
-            type="text"
-            placeholder="Search foods or recipes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <div className="space-y-6">
+          <div className="bg-card/60 backdrop-blur-md rounded-xl shadow-elegant border border-border/50 p-4">
+            <Input
+              type="text"
+              placeholder="Search foods or recipes..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border-border/50 bg-background/50"
+            />
+          </div>
 
-        <div className="flex border-b border-gray-200 mb-4">
-          <button
-            onClick={() => setActiveTab("foods")}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "foods"
-                ? "border-[#CE1141] text-[#CE1141]"
-                : "border-transparent text-gray-700 hover:border-[#CE1141]"
-            }`}
-          >
-            Confirmed Foods
-          </button>
-          <button
-            onClick={() => setActiveTab("recipes")}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "recipes"
-                ? "border-[#CE1141] text-[#CE1141]"
-                : "border-transparent text-gray-700 hover:border-[#CE1141]"
-            }`}
-          >
-            Saved Recipes
-          </button>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          {activeTab === "foods" ? (
-            <table className="w-full text-sm">
-              <thead className="bg-[#002855] text-white text-xs uppercase">
-                <tr>
-                  <th className="px-6 py-3 text-left">Food Item</th>
-                  <th className="px-4 py-3 text-left">Quantity</th>
-                  <th className="px-3 py-3 text-right">Calories</th>
-                  <th className="px-3 py-3 text-right">Protein</th>
-                  <th className="px-3 py-3 text-right">Carbs</th>
-                  <th className="px-3 py-3 text-right">Fats</th>
-                  <th className="px-3 py-3 text-right">Fiber</th>
-                  <th className="px-4 py-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredFoods.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
-                      No confirmed foods found
-                    </td>
-                  </tr>
-                ) : (
-                  filteredFoods.map((food) => (
-                    <tr key={food.id} className="border-b hover:bg-red-50">
-                      <td className="px-6 py-3 font-medium">{food.food_name}</td>
-                      <td className="px-4 py-3">{food.quantity}</td>
-                      <td className="px-3 py-3 text-right">{food.calories?.toFixed(0)}</td>
-                      <td className="px-3 py-3 text-right">{food.protein?.toFixed(1)}g</td>
-                      <td className="px-3 py-3 text-right">{food.carbs?.toFixed(1)}g</td>
-                      <td className="px-3 py-3 text-right">{food.fats?.toFixed(1)}g</td>
-                      <td className="px-3 py-3 text-right">{food.fiber?.toFixed(1)}g</td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2 justify-center">
-                          <Button
-                            size="sm"
-                            onClick={() => setLogFoodModal({ open: true, food })}
-                            className="h-8"
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Log
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setEditFoodModal({ open: true, food })}
-                            className="h-8"
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              setDeleteDialog({
-                                open: true,
-                                type: "food",
-                                id: food.id,
-                                name: food.food_name,
-                              })
-                            }
-                            className="h-8 border-red-300 text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </td>
+          <div className="bg-card/60 backdrop-blur-md rounded-xl shadow-elegant-lg border border-border/50 overflow-hidden">
+            <div className="flex border-b border-border/50">
+              <button
+                onClick={() => setActiveTab("foods")}
+                className={`flex-1 px-6 py-4 text-sm font-semibold border-b-2 transition-all ${
+                  activeTab === "foods"
+                    ? "border-primary text-primary bg-primary/5"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                }`}
+              >
+                Confirmed Foods
+              </button>
+              <button
+                onClick={() => setActiveTab("recipes")}
+                className={`flex-1 px-6 py-4 text-sm font-semibold border-b-2 transition-all ${
+                  activeTab === "recipes"
+                    ? "border-primary text-primary bg-primary/5"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                }`}
+              >
+                Saved Recipes
+              </button>
+            </div>
+            {activeTab === "foods" ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gradient-to-r from-primary to-primary/90 text-primary-foreground text-xs uppercase">
+                    <tr>
+                      <th className="px-6 py-3 text-left font-semibold">Food Item</th>
+                      <th className="px-4 py-3 text-left font-semibold">Quantity</th>
+                      <th className="px-3 py-3 text-right font-semibold">Calories</th>
+                      <th className="px-3 py-3 text-right font-semibold">Protein</th>
+                      <th className="px-3 py-3 text-right font-semibold">Carbs</th>
+                      <th className="px-3 py-3 text-right font-semibold">Fats</th>
+                      <th className="px-3 py-3 text-right font-semibold">Fiber</th>
+                      <th className="px-4 py-3 text-center font-semibold">Actions</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-[#002855] text-white text-xs uppercase">
-                <tr>
-                  <th className="px-6 py-3 text-left">Recipe Name</th>
-                  <th className="px-4 py-3 text-left">Servings</th>
-                  <th className="px-3 py-3 text-right">Calories</th>
-                  <th className="px-3 py-3 text-right">Protein</th>
-                  <th className="px-3 py-3 text-right">Carbs</th>
-                  <th className="px-3 py-3 text-right">Fats</th>
-                  <th className="px-3 py-3 text-right">Fiber</th>
-                  <th className="px-4 py-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRecipes.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
-                      No recipes found
-                    </td>
-                  </tr>
-                ) : (
-                  filteredRecipes.map((recipe) => (
-                    <>
-                      <tr key={recipe.id} className="border-b hover:bg-red-50">
-                        <td className="px-6 py-3">
-                          <div className="font-medium">{recipe.recipe_name}</div>
-                          {recipe.ingredients && recipe.ingredients.length > 0 && (
-                            <ul className="text-xs text-gray-600 mt-1 space-y-0.5">
-                              {recipe.ingredients.map((ingredient: any, idx: number) => (
-                                <li key={idx}>
-                                  • {ingredient.foodName || ingredient.food_name} ({ingredient.quantity})
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">1 serving</td>
-                        <td className="px-3 py-3 text-right">{recipe.total_calories?.toFixed(0)}</td>
-                        <td className="px-3 py-3 text-right">{recipe.total_protein?.toFixed(1)}g</td>
-                        <td className="px-3 py-3 text-right">{recipe.total_carbs?.toFixed(1)}g</td>
-                        <td className="px-3 py-3 text-right">{recipe.total_fats?.toFixed(1)}g</td>
-                        <td className="px-3 py-3 text-right">{recipe.total_fiber?.toFixed(1)}g</td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-2 justify-center">
-                            <Button
-                              size="sm"
-                              onClick={() => handleLogRecipe(recipe)}
-                              className="h-8"
-                            >
-                              <Plus className="h-3 w-3 mr-1" />
-                              Log
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setEditRecipeModal({ open: true, recipe })}
-                              className="h-8"
-                            >
-                              <Pencil className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                setDeleteDialog({
-                                  open: true,
-                                  type: "recipe",
-                                  id: recipe.id,
-                                  name: recipe.recipe_name,
-                                })
-                              }
-                              className="h-8 border-red-300 text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
+                  </thead>
+                  <tbody className="divide-y divide-border/30">
+                    {filteredFoods.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
+                          No confirmed foods found
                         </td>
                       </tr>
-                    </>
-                  ))
-                )}
-              </tbody>
-            </table>
-          )}
+                    ) : (
+                      filteredFoods.map((food) => (
+                        <tr key={food.id} className="hover:bg-primary/5 transition-colors">
+                          <td className="px-6 py-4 font-medium text-foreground">{food.food_name}</td>
+                          <td className="px-4 py-4 text-muted-foreground">{food.quantity}</td>
+                          <td className="px-3 py-4 text-right text-foreground font-medium">{food.calories?.toFixed(0)}</td>
+                          <td className="px-3 py-4 text-right text-muted-foreground">{food.protein?.toFixed(1)}g</td>
+                          <td className="px-3 py-4 text-right text-muted-foreground">{food.carbs?.toFixed(1)}g</td>
+                          <td className="px-3 py-4 text-right text-muted-foreground">{food.fats?.toFixed(1)}g</td>
+                          <td className="px-3 py-4 text-right text-muted-foreground">{food.fiber?.toFixed(1)}g</td>
+                          <td className="px-4 py-4">
+                            <div className="flex gap-2 justify-center">
+                              <Button
+                                size="sm"
+                                onClick={() => setLogFoodModal({ open: true, food })}
+                                className="h-8 shadow-sm hover:shadow-md transition-shadow"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Log
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditFoodModal({ open: true, food })}
+                                className="h-8 hover:bg-muted"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  setDeleteDialog({
+                                    open: true,
+                                    type: "food",
+                                    id: food.id,
+                                    name: food.food_name,
+                                  })
+                                }
+                                className="h-8 border-destructive/50 text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gradient-to-r from-primary to-primary/90 text-primary-foreground text-xs uppercase">
+                    <tr>
+                      <th className="px-6 py-3 text-left font-semibold">Recipe Name</th>
+                      <th className="px-4 py-3 text-left font-semibold">Servings</th>
+                      <th className="px-3 py-3 text-right font-semibold">Calories</th>
+                      <th className="px-3 py-3 text-right font-semibold">Protein</th>
+                      <th className="px-3 py-3 text-right font-semibold">Carbs</th>
+                      <th className="px-3 py-3 text-right font-semibold">Fats</th>
+                      <th className="px-3 py-3 text-right font-semibold">Fiber</th>
+                      <th className="px-4 py-3 text-center font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/30">
+                    {filteredRecipes.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
+                          No recipes found
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredRecipes.map((recipe) => (
+                        <tr key={recipe.id} className="hover:bg-primary/5 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="font-medium text-foreground">{recipe.recipe_name}</div>
+                            {recipe.ingredients && recipe.ingredients.length > 0 && (
+                              <ul className="text-xs text-muted-foreground mt-2 space-y-1">
+                                {recipe.ingredients.map((ingredient: any, idx: number) => (
+                                  <li key={idx} className="flex items-start gap-1">
+                                    <span className="text-primary">•</span>
+                                    <span>{ingredient.foodName || ingredient.food_name} ({ingredient.quantity})</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 text-muted-foreground">1 serving</td>
+                          <td className="px-3 py-4 text-right text-foreground font-medium">{recipe.total_calories?.toFixed(0)}</td>
+                          <td className="px-3 py-4 text-right text-muted-foreground">{recipe.total_protein?.toFixed(1)}g</td>
+                          <td className="px-3 py-4 text-right text-muted-foreground">{recipe.total_carbs?.toFixed(1)}g</td>
+                          <td className="px-3 py-4 text-right text-muted-foreground">{recipe.total_fats?.toFixed(1)}g</td>
+                          <td className="px-3 py-4 text-right text-muted-foreground">{recipe.total_fiber?.toFixed(1)}g</td>
+                          <td className="px-4 py-4">
+                            <div className="flex gap-2 justify-center">
+                              <Button
+                                size="sm"
+                                onClick={() => handleLogRecipe(recipe)}
+                                className="h-8 shadow-sm hover:shadow-md transition-shadow"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Log
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditRecipeModal({ open: true, recipe })}
+                                className="h-8 hover:bg-muted"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  setDeleteDialog({
+                                    open: true,
+                                    type: "recipe",
+                                    id: recipe.id,
+                                    name: recipe.recipe_name,
+                                  })
+                                }
+                                className="h-8 border-destructive/50 text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
 
         <LogConfirmedFoodModal
@@ -387,7 +399,7 @@ const FoodLibrary = () => {
         />
 
         <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open, type: null, id: null, name: "" })}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-card/95 backdrop-blur-lg border-border/50">
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -396,7 +408,7 @@ const FoodLibrary = () => {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>
