@@ -81,10 +81,12 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
 
   const calorieGoal = getCalorieGoal();
   const lastKnownWeight = weight ? parseFloat(weight) : null;
-  const proteinGoal = lastKnownWeight ? Math.round(lastKnownWeight * 0.8) : Math.round(calorieGoal * 0.3 / 4);
-  const carbsGoal = Math.round(calorieGoal * 0.4 / 4);
-  const fatsGoal = Math.round(calorieGoal * 0.3 / 9);
-  const fiberGoal = 30;
+  
+  // Macronutrient goals based on specification
+  const proteinGoal = lastKnownWeight ? lastKnownWeight * 0.8 : null;
+  const carbsGoal = lastKnownWeight ? (calorieGoal * 0.50) / 4 : null;
+  const fatsGoal = lastKnownWeight ? (calorieGoal * 0.30) / 9 : null;
+  const fiberGoal = lastKnownWeight ? (calorieGoal / 1000) * 14 : null;
 
   const goalOptions = [
     { value: "gain2", label: "Gain 2 lbs/week" },
@@ -118,37 +120,37 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
         <div className="text-center bg-gray-50 p-4 rounded-lg">
           <span className="text-sm text-gray-500 block">Calories</span>
           <div className="text-2xl font-bold text-[#002855]">
-            {Math.round(totals.calories)}/{calorieGoal}
+            {totals.calories.toFixed(0)}/{calorieGoal}
           </div>
         </div>
         <div className="text-center bg-gray-50 p-4 rounded-lg">
           <span className="text-sm text-gray-500 block">Protein</span>
           <div className="text-2xl font-bold text-[#002855]">
-            {Math.round(totals.protein)}/{proteinGoal}g
+            {totals.protein.toFixed(1)}/{proteinGoal ? proteinGoal.toFixed(1) : "--"}g
           </div>
         </div>
         <div className="text-center bg-gray-50 p-4 rounded-lg">
           <span className="text-sm text-gray-500 block">Carbs</span>
           <div className="text-2xl font-bold text-[#002855]">
-            {Math.round(totals.carbs)}/{carbsGoal}g
+            {totals.carbs.toFixed(1)}/{carbsGoal ? carbsGoal.toFixed(1) : "--"}g
           </div>
         </div>
         <div className="text-center bg-gray-50 p-4 rounded-lg">
           <span className="text-sm text-gray-500 block">Fats</span>
           <div className="text-2xl font-bold text-[#002855]">
-            {Math.round(totals.fats)}/{fatsGoal}g
+            {totals.fats.toFixed(1)}/{fatsGoal ? fatsGoal.toFixed(1) : "--"}g
           </div>
         </div>
         <div className="text-center bg-gray-50 p-4 rounded-lg">
           <span className="text-sm text-gray-500 block">Fiber</span>
           <div className="text-2xl font-bold text-[#002855]">
-            {Math.round(totals.fiber)}/{fiberGoal}g
+            {totals.fiber.toFixed(1)}/{fiberGoal ? fiberGoal.toFixed(1) : "--"}g
           </div>
         </div>
         <div className="text-center bg-gray-50 p-4 rounded-lg">
           <span className="text-sm text-gray-500 block">Burned</span>
           <span className="text-2xl font-bold text-[#CE1141]">
-            {dailyStats?.calories_burned ? Math.round(dailyStats.calories_burned) : "--"}
+            {dailyStats?.calories_burned ? dailyStats.calories_burned.toFixed(0) : "--"}
           </span>
         </div>
       </div>
