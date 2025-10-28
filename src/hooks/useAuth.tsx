@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import type { User } from "@supabase/supabase-js";
 
-const EXTERNAL_AUTH_URL = "https://jaxtrax.net/auth";
+const EXTERNAL_AUTH_URL = "https://www.jaxtrax.net/auth";
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
