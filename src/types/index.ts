@@ -56,8 +56,8 @@ export interface Recipe {
 }
 
 export const SUPPLEMENTS = {
-  vitamins: { name: "Vitamins", calories: 0, protein: 0, carbs: 0, fats: 0, fiber: 0 },
-  creatine: { name: "Creatine", calories: 0, protein: 0, carbs: 0, fats: 0, fiber: 0 },
-  collagen: { name: "Collagen", calories: 40, protein: 10, carbs: 0, fats: 0, fiber: 0 },
-  cmz: { name: "CMZ", calories: 0, protein: 0, carbs: 0, fats: 0, fiber: 0 },
+  vitamins: { name: "Vitamins", quantity: "6 gummies", calories: 45, protein: 0, carbs: 9, fats: 0, fiber: 3, defaultMealType: "Breakfast" },
+  creatine: { name: "Creatine", quantity: "4 gummies", calories: 50, protein: 0, carbs: 0, fats: 0, fiber: 0, defaultMealType: "Breakfast" },
+  collagen: { name: "Collagen", quantity: "3 capsules", calories: 10, protein: 2, carbs: 0, fats: 0, fiber: 0, defaultMealType: "Lunch" },
+  cmz: { name: "CMZ", quantity: "3 caplets", calories: 5, protein: 0, carbs: 1, fats: 0, fiber: 0, defaultMealType: "Dinner" },
 };

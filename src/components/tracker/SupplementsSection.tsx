@@ -29,9 +29,9 @@ const SupplementsSection = ({ userId, selectedDate, meals, onSupplementToggle, d
         await supabase.from("meals").insert({
           user_id: userId,
           date: selectedDate,
-          meal_type: "Snack",
+          meal_type: supplement.defaultMealType,
           food_name: supplement.name,
-          quantity: "1 serving",
+          quantity: supplement.quantity,
           calories: supplement.calories,
           protein: supplement.protein,
           carbs: supplement.carbs,
