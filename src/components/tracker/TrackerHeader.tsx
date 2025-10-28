@@ -38,7 +38,7 @@ const TrackerHeader = ({
     <>
       <header className="mb-2">
         {/* Single row header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 py-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-2">
           <div>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent uppercase leading-none">
               JaxTrax
