@@ -23,8 +23,16 @@ const BarcodeScanner = ({ open, onOpenChange, onScan }: BarcodeScannerProps) => 
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
+    let initTimeoutId: NodeJS.Timeout;
     
     if (open) {
+      // Give the DOM a moment to fully mount the video element
+      initTimeoutId = setTimeout(() => {
+        if (videoRef.current) {
+          startScanning();
+        }
+      }, 100);
+      
       // Set a timeout to switch to manual mode if camera doesn't start
       timeoutId = setTimeout(() => {
         if (!scanning && !error && !manualMode) {
@@ -33,14 +41,11 @@ const BarcodeScanner = ({ open, onOpenChange, onScan }: BarcodeScannerProps) => 
           setManualMode(true);
         }
       }, 5000); // 5 second timeout
-      
-      if (videoRef.current) {
-        startScanning();
-      }
     }
 
     return () => {
       clearTimeout(timeoutId);
+      clearTimeout(initTimeoutId);
       stopScanning();
     };
   }, [open]);
