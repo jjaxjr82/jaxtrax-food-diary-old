@@ -73,16 +73,36 @@ const Tracker = () => {
       if (mealsError) throw mealsError;
       setMeals((mealsData || []) as Meal[]);
 
-      // Fetch daily stats
+      // Fetch daily stats for current date
       const { data: statsData, error: statsError } = await supabase
         .from("daily_stats")
         .select("*")
         .eq("user_id", user.id)
         .eq("date", selectedDate)
-        .single();
+        .maybeSingle();
 
       if (statsError && statsError.code !== "PGRST116") throw statsError;
-      setDailyStats(statsData);
+
+      // If no weight for today, fetch the most recent weight
+      let currentStats = statsData;
+      if (!statsData?.weight) {
+        const { data: lastWeightData } = await supabase
+          .from("daily_stats")
+          .select("weight")
+          .eq("user_id", user.id)
+          .not("weight", "is", null)
+          .order("date", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (lastWeightData?.weight) {
+          currentStats = statsData 
+            ? { ...statsData, weight: lastWeightData.weight }
+            : { weight: lastWeightData.weight } as any;
+        }
+      }
+
+      setDailyStats(currentStats || null);
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast({
