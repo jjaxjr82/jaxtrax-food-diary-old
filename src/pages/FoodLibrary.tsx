@@ -292,50 +292,63 @@ const FoodLibrary = () => {
                   </tr>
                 ) : (
                   filteredRecipes.map((recipe) => (
-                    <tr key={recipe.id} className="border-b hover:bg-red-50">
-                      <td className="px-6 py-3 font-medium">{recipe.recipe_name}</td>
-                      <td className="px-4 py-3">1 serving</td>
-                      <td className="px-3 py-3 text-right">{recipe.total_calories?.toFixed(0)}</td>
-                      <td className="px-3 py-3 text-right">{recipe.total_protein?.toFixed(1)}g</td>
-                      <td className="px-3 py-3 text-right">{recipe.total_carbs?.toFixed(1)}g</td>
-                      <td className="px-3 py-3 text-right">{recipe.total_fats?.toFixed(1)}g</td>
-                      <td className="px-3 py-3 text-right">{recipe.total_fiber?.toFixed(1)}g</td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2 justify-center">
-                          <Button
-                            size="sm"
-                            onClick={() => handleLogRecipe(recipe)}
-                            className="h-8"
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Log
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setEditRecipeModal({ open: true, recipe })}
-                            className="h-8"
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              setDeleteDialog({
-                                open: true,
-                                type: "recipe",
-                                id: recipe.id,
-                                name: recipe.recipe_name,
-                              })
-                            }
-                            className="h-8 border-red-300 text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
+                    <>
+                      <tr key={recipe.id} className="border-b hover:bg-red-50">
+                        <td className="px-6 py-3">
+                          <div className="font-medium">{recipe.recipe_name}</div>
+                          {recipe.ingredients && recipe.ingredients.length > 0 && (
+                            <ul className="text-xs text-gray-600 mt-1 space-y-0.5">
+                              {recipe.ingredients.map((ingredient: any, idx: number) => (
+                                <li key={idx}>
+                                  • {ingredient.foodName || ingredient.food_name} ({ingredient.quantity})
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">1 serving</td>
+                        <td className="px-3 py-3 text-right">{recipe.total_calories?.toFixed(0)}</td>
+                        <td className="px-3 py-3 text-right">{recipe.total_protein?.toFixed(1)}g</td>
+                        <td className="px-3 py-3 text-right">{recipe.total_carbs?.toFixed(1)}g</td>
+                        <td className="px-3 py-3 text-right">{recipe.total_fats?.toFixed(1)}g</td>
+                        <td className="px-3 py-3 text-right">{recipe.total_fiber?.toFixed(1)}g</td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-2 justify-center">
+                            <Button
+                              size="sm"
+                              onClick={() => handleLogRecipe(recipe)}
+                              className="h-8"
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Log
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setEditRecipeModal({ open: true, recipe })}
+                              className="h-8"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                setDeleteDialog({
+                                  open: true,
+                                  type: "recipe",
+                                  id: recipe.id,
+                                  name: recipe.recipe_name,
+                                })
+                              }
+                              className="h-8 border-red-300 text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    </>
                   ))
                 )}
               </tbody>
