@@ -13,17 +13,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// This will run whenever the user's auth state changes (login, logout, token refresh)
 supabase.auth.onAuthStateChange((event, session) => {
   console.log("Auth event:", event, session);
   if (event === "SIGNED_OUT") {
-    // Delete cookies
-    document.cookie = `my-access-token=; Domain=.jaxtrax.net; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax; Secure`;
-    document.cookie = `my-refresh-token=; Domain=.jaxtrax.net; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax; Secure`;
+    document.cookie = `my-access-token=; Domain=.jaxtrax.net; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT`;
+    document.cookie = `my-refresh-token=; Domain=.jaxtrax.net; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT`;
   } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-    // Set cookies
-    const maxAge = 100 * 365 * 24 * 60 * 60; // 100 years
-    document.cookie = `my-access-token=${session.access_token}; Domain=.jaxtrax.net; Path=/; Max-Age=${maxAge}; SameSite=Lax; Secure`;
-    document.cookie = `my-refresh-token=${session.refresh_token}; Domain=.jaxtrax.net; Path=/; Max-Age=${maxAge}; SameSite=Lax; Secure`;
+    const maxAge = 100 * 365 * 24 * 60 * 60;
+    document.cookie = `my-access-token=${session.access_token}; Domain=.jaxtrax.net; Path=/; Max-Age=${maxAge}`;
+    document.cookie = `my-refresh-token=${session.refresh_token}; Domain=.jaxtrax.net; Path=/; Max-Age=${maxAge}`;
   }
 });
