@@ -12,3 +12,15 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storageKey: "supabase.auth.token",
   },
 });
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_OUT" || event === "USER_DELETED") {
+    // Delete cookies
+    document.cookie = `my-access-token=; Domain=.jaxtrax.net; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax; Secure`;
+    document.cookie = `my-refresh-token=; Domain=.jaxtrax.net; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax; Secure`;
+  } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+    // Set cookies
+    const maxAge = 100 * 365 * 24 * 60 * 60; // 100 years
+    document.cookie = `my-access-token=${session.access_token}; Domain=.jaxtrax.net; Path=/; Max-Age=${maxAge}; SameSite=Lax; Secure`;
+    document.cookie = `my-refresh-token=${session.refresh_token}; Domain=.jaxtrax.net; Path=/; Max-Age=${maxAge}; SameSite=Lax; Secure`;
+  }
+});
