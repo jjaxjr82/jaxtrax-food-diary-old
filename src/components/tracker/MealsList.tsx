@@ -200,10 +200,10 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled, userId, select
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-[#002855]">Today's Log</h2>
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <h2 className="text-xl font-semibold mb-4">Today's Log</h2>
+      <div className="bg-card rounded-xl shadow-md overflow-hidden">
         {meals.filter(m => m.is_confirmed).length === 0 ? (
-          <p className="text-center text-gray-500 p-8">No meals logged yet</p>
+          <p className="text-center text-muted-foreground p-8">No meals logged yet</p>
         ) : (
           <>
             {(Object.entries(mealsByType) as [string, Meal[]][]).map(([type, typeMeals]) => {
@@ -212,9 +212,9 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled, userId, select
               const isEmpty = typeMeals.length === 0;
 
               return (
-                <div key={type} className="border-b border-gray-200 last:border-b-0">
-                  <div className="bg-[#002855] px-4 py-3 flex justify-between items-center">
-                    <h3 className="text-white font-semibold">{type}</h3>
+                <div key={type} className="border-b border-border last:border-b-0">
+                  <div className="bg-primary px-4 py-3 flex justify-between items-center">
+                    <h3 className="text-primary-foreground font-semibold">{type}</h3>
                     <div className="flex gap-2">
                       <Button
                         size="sm"
@@ -267,27 +267,27 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled, userId, select
                   
                   {typeMeals.length > 0 && (
                     <>
-                      <div className="divide-y divide-gray-100">
+                      <div className="divide-y divide-border">
                         {typeMeals.map((meal) => (
-                          <div key={meal.id} className="p-4 hover:bg-gray-50">
+                          <div key={meal.id} className="p-4 hover:bg-muted/50">
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <h4 className="font-medium text-gray-900">{meal.food_name}</h4>
+                                  <h4 className="font-medium">{meal.food_name}</h4>
                                   {!meal.is_confirmed && (
                                     <Button
                                       size="sm"
                                       variant="outline"
                                       onClick={() => handleConfirmFood(meal)}
                                       disabled={disabled}
-                                      className="h-6 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
+                                      className="h-6"
                                     >
                                       <Check className="h-3 w-3" />
                                     </Button>
                                   )}
                                 </div>
-                                <p className="text-sm text-gray-600">{meal.quantity}</p>
-                                <div className="mt-2 text-xs text-gray-500 space-x-4">
+                                <p className="text-sm text-muted-foreground">{meal.quantity}</p>
+                                <div className="mt-2 text-xs text-muted-foreground space-x-4">
                                   <span>{Math.round(meal.calories)} cal</span>
                                   <span>P: {Math.round(meal.protein)}g</span>
                                   <span>C: {Math.round(meal.carbs)}g</span>
@@ -327,10 +327,10 @@ const MealsList = ({ meals, onMealUpdate, onMealDelete, disabled, userId, select
                         ))}
                       </div>
                       
-                      <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+                      <div className="bg-muted/50 px-4 py-3 border-t border-border">
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-700">{type} Subtotal:</span>
-                          <div className="text-sm text-gray-600 space-x-4">
+                          <span className="font-semibold">{type} Subtotal:</span>
+                          <div className="text-sm text-muted-foreground space-x-4">
                             <span className="font-medium">{Math.round(subtotal.calories)} cal</span>
                             <span>P: {subtotal.protein.toFixed(1)}g</span>
                             <span>C: {subtotal.carbs.toFixed(1)}g</span>

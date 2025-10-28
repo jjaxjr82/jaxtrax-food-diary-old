@@ -60,8 +60,8 @@ const SupplementsSection = ({ userId, selectedDate, meals, onSupplementToggle, d
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-      <h2 className="text-xl font-semibold mb-4 text-[#002855]">Daily Supplements</h2>
+    <div className="bg-card rounded-xl shadow-sm p-6 mb-8">
+      <h2 className="text-xl font-semibold mb-4">Daily Supplements</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {Object.entries(SUPPLEMENTS).map(([id, supp]) => (
           <div key={id} className="flex items-center">
@@ -70,9 +70,8 @@ const SupplementsSection = ({ userId, selectedDate, meals, onSupplementToggle, d
               checked={isSupplementChecked(id)}
               onCheckedChange={(checked) => handleToggle(id, checked as boolean)}
               disabled={disabled}
-              className="border-[#CE1141] data-[state=checked]:bg-[#CE1141]"
             />
-            <Label htmlFor={`supp-${id}`} className="ml-2 text-sm font-medium text-gray-700 cursor-pointer">
+            <Label htmlFor={`supp-${id}`} className="ml-2 text-sm font-medium cursor-pointer">
               {supp.name}
             </Label>
           </div>
