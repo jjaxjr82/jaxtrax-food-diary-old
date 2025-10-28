@@ -56,7 +56,7 @@ const Tracker = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, selectedDate]); // Added selectedDate to dependencies
 
   const fetchDailyData = async () => {
     if (!user) return;

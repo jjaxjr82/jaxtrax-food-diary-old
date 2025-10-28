@@ -196,9 +196,16 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
             <Input
               type="number"
               step="0.1"
+              min="0"
+              max="999"
               placeholder="Enter weight"
               value={weight}
-              onChange={(e) => setWeight(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 999)) {
+                  setWeight(value);
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -214,9 +221,16 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
             </label>
             <Input
               type="number"
+              min="0"
+              max="9999"
               placeholder="Enter calories"
               value={caloriesBurned}
-              onChange={(e) => setCaloriesBurned(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 9999)) {
+                  setCaloriesBurned(value);
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
