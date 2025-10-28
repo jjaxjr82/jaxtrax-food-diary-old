@@ -28,6 +28,7 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
   const [suggestions, setSuggestions] = useState("");
   const [userSettings, setUserSettings] = useState<any>(null);
   const [targetMacros, setTargetMacros] = useState({ calories: 500, protein: 30, carbs: 60, fats: 15 });
+  const [todaysMeals, setTodaysMeals] = useState<any[]>([]);
   const [comboOpen, setComboOpen] = useState(false);
   const { toast } = useToast();
 
@@ -75,6 +76,7 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
       fetchExcludedFoods();
       fetchIngredientsOnHand();
       fetchUserSettings();
+      fetchTodaysMeals();
     }
   }, [open, userId]);
 
@@ -102,6 +104,19 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
     }
   };
 
+  const fetchTodaysMeals = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const { data } = await supabase
+      .from("meals")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("date", today);
+
+    if (data) {
+      setTodaysMeals(data);
+    }
+  };
+
   const fetchUserSettings = async () => {
     const { data } = await supabase
       .from("user_settings")
@@ -111,8 +126,6 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
 
     if (data) {
       setUserSettings(data);
-      const calculatedTargets = calculateMealTargets(data);
-      setTargetMacros(calculatedTargets);
     } else {
       const defaults = {
         base_tdee: 2026,
@@ -122,12 +135,17 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
         fiber_per_1000_cal: 14,
       };
       setUserSettings(defaults);
-      const calculatedTargets = calculateMealTargets(defaults);
-      setTargetMacros(calculatedTargets);
     }
   };
 
-  const calculateMealTargets = (settings: any) => {
+  useEffect(() => {
+    if (userSettings && todaysMeals) {
+      const calculatedTargets = calculateMealTargets(userSettings, todaysMeals);
+      setTargetMacros(calculatedTargets);
+    }
+  }, [userSettings, todaysMeals]);
+
+  const calculateMealTargets = (settings: any, meals: any[]) => {
     if (!settings) return { calories: 500, protein: 30, carbs: 60, fats: 15 };
 
     const baseTdee = settings.base_tdee || 2000;
@@ -135,18 +153,41 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
     const carbsPercentage = settings.carbs_percentage || 50;
     const fatsPercentage = settings.fats_percentage || 30;
 
+    // Calculate daily targets
     const weight = 160;
+    const dailyCalories = baseTdee;
     const dailyProtein = weight * proteinPerLb;
     const dailyCarbs = (baseTdee * (carbsPercentage / 100)) / 4;
     const dailyFats = (baseTdee * (fatsPercentage / 100)) / 9;
 
-    const mealDivider = 3;
+    // Calculate what's already been consumed today
+    const consumed = meals.reduce(
+      (acc, meal) => ({
+        calories: acc.calories + (Number(meal.calories) || 0),
+        protein: acc.protein + (Number(meal.protein) || 0),
+        carbs: acc.carbs + (Number(meal.carbs) || 0),
+        fats: acc.fats + (Number(meal.fats) || 0),
+      }),
+      { calories: 0, protein: 0, carbs: 0, fats: 0 }
+    );
+
+    // Calculate remaining macros for the day
+    const remaining = {
+      calories: Math.max(0, dailyCalories - consumed.calories),
+      protein: Math.max(0, dailyProtein - consumed.protein),
+      carbs: Math.max(0, dailyCarbs - consumed.carbs),
+      fats: Math.max(0, dailyFats - consumed.fats),
+    };
+
+    // Count how many meals are typically left in the day
+    const mealsLogged = meals.length;
+    const estimatedRemainingMeals = Math.max(1, 3 - mealsLogged);
 
     return {
-      calories: Math.round(baseTdee / mealDivider),
-      protein: Math.round(dailyProtein / mealDivider),
-      carbs: Math.round(dailyCarbs / mealDivider),
-      fats: Math.round(dailyFats / mealDivider),
+      calories: Math.round(remaining.calories / estimatedRemainingMeals),
+      protein: Math.round(remaining.protein / estimatedRemainingMeals),
+      carbs: Math.round(remaining.carbs / estimatedRemainingMeals),
+      fats: Math.round(remaining.fats / estimatedRemainingMeals),
     };
   };
 
