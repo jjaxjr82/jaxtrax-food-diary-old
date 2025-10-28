@@ -42,7 +42,7 @@ const TrackerHeader = ({
           <div>
             <h1 className="text-5xl font-impact leading-none tracking-tight uppercase mb-1" 
                 style={{
-                  background: 'linear-gradient(to bottom, #FF0000, #8B0000)',
+                  background: 'linear-gradient(to bottom, #FF0000, #FF3333)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
