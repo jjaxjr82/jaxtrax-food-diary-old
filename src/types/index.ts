@@ -29,6 +29,18 @@ export interface DailyStats {
   updated_at: string;
 }
 
+export interface UserSettings {
+  id: string;
+  user_id: string;
+  base_tdee: number;
+  protein_per_lb: number;
+  carbs_percentage: number;
+  fats_percentage: number;
+  fiber_per_1000_cal: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ConfirmedFood {
   id: string;
   user_id: string;

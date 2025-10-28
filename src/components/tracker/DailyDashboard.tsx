@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import type { DailyStats } from "@/types";
+import type { DailyStats, UserSettings } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, Scale, Flame } from "lucide-react";
+import { TrendingUp, Scale, Flame, Settings } from "lucide-react";
+import SettingsModal from "./SettingsModal";
 
 interface DailyDashboardProps {
   totals: {
@@ -27,12 +28,34 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
   const [weight, setWeight] = useState(dailyStats?.weight?.toString() || "");
   const [caloriesBurned, setCaloriesBurned] = useState(dailyStats?.calories_burned?.toString() || "");
   const [currentGoal, setCurrentGoal] = useState(weeklyGoal);
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     setWeight(dailyStats?.weight?.toString() || "");
     setCaloriesBurned(dailyStats?.calories_burned?.toString() || "");
     setCurrentGoal(dailyStats?.weekly_goal || "lose1");
   }, [dailyStats]);
+
+  useEffect(() => {
+    fetchUserSettings();
+  }, [userId]);
+
+  const fetchUserSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("user_settings")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116") throw error;
+
+      setUserSettings(data);
+    } catch (error) {
+      console.error("Error fetching user settings:", error);
+    }
+  };
 
   const handleSaveStats = async () => {
     try {
@@ -66,7 +89,7 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
   };
 
   const getCalorieGoal = () => {
-    const BASE_TDEE = 2026;
+    const BASE_TDEE = userSettings?.base_tdee || 2026;
     const burnedCalories = caloriesBurned ? parseFloat(caloriesBurned) : 0;
     const adjustedTDEE = BASE_TDEE + burnedCalories;
     
@@ -83,11 +106,11 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
   const calorieGoal = getCalorieGoal();
   const lastKnownWeight = weight ? parseFloat(weight) : null;
   
-  // Macronutrient goals based on specification
-  const proteinGoal = lastKnownWeight ? lastKnownWeight * 0.8 : null;
-  const carbsGoal = lastKnownWeight ? (calorieGoal * 0.50) / 4 : null;
-  const fatsGoal = lastKnownWeight ? (calorieGoal * 0.30) / 9 : null;
-  const fiberGoal = lastKnownWeight ? (calorieGoal / 1000) * 14 : null;
+  // Macronutrient goals based on user settings
+  const proteinGoal = lastKnownWeight ? lastKnownWeight * (userSettings?.protein_per_lb || 0.8) : null;
+  const carbsGoal = lastKnownWeight ? (calorieGoal * ((userSettings?.carbs_percentage || 50) / 100)) / 4 : null;
+  const fatsGoal = lastKnownWeight ? (calorieGoal * ((userSettings?.fats_percentage || 30) / 100)) / 9 : null;
+  const fiberGoal = lastKnownWeight ? (calorieGoal / 1000) * (userSettings?.fiber_per_1000_cal || 14) : null;
 
   const goalOptions = [
     { value: "gain2", label: "Gain 2 lbs/week" },
@@ -124,6 +147,15 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
           Daily Dashboard
         </h2>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSettingsOpen(true)}
+            className="gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Nutrition Goals
+          </Button>
           <span className="text-sm font-medium text-muted-foreground">Weekly Goal:</span>
           <Select value={currentGoal} onValueChange={setCurrentGoal}>
             <SelectTrigger className="w-[180px] border-border/50 bg-background/50">
@@ -250,6 +282,13 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
           </div>
         </div>
       </div>
+
+      <SettingsModal
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        userId={userId}
+        onSettingsUpdate={fetchUserSettings}
+      />
     </div>
   );
 };

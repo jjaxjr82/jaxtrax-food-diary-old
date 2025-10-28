@@ -235,6 +235,42 @@ export type Database = {
           },
         ]
       }
+      user_settings: {
+        Row: {
+          base_tdee: number
+          carbs_percentage: number
+          created_at: string | null
+          fats_percentage: number
+          fiber_per_1000_cal: number
+          id: string
+          protein_per_lb: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          base_tdee?: number
+          carbs_percentage?: number
+          created_at?: string | null
+          fats_percentage?: number
+          fiber_per_1000_cal?: number
+          id?: string
+          protein_per_lb?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          base_tdee?: number
+          carbs_percentage?: number
+          created_at?: string | null
+          fats_percentage?: number
+          fiber_per_1000_cal?: number
+          id?: string
+          protein_per_lb?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
