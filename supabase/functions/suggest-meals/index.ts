@@ -12,7 +12,15 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, mealType, targetCalories, targetProtein, targetCarbs, targetFats } = await req.json();
+    const { 
+      userId, 
+      mealType, 
+      targetCalories, 
+      targetProtein, 
+      targetCarbs, 
+      targetFats,
+      todaysMeals = []
+    } = await req.json();
     
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -52,6 +60,23 @@ serve(async (req) => {
       ? ingredientsOnHand.map(i => `${i.ingredient_name}${i.quantity ? ` (${i.quantity})` : ''}`).join(", ")
       : "No ingredients specified";
 
+    // Calculate what user has consumed today
+    const consumedToday = todaysMeals.reduce(
+      (acc: any, meal: any) => ({
+        calories: acc.calories + (meal.calories || 0),
+        protein: acc.protein + (meal.protein || 0),
+        carbs: acc.carbs + (meal.carbs || 0),
+        fats: acc.fats + (meal.fats || 0),
+      }),
+      { calories: 0, protein: 0, carbs: 0, fats: 0 }
+    );
+
+    const todaysSummary = todaysMeals.length > 0
+      ? `\n\nFoods already eaten today:\n${todaysMeals.map((m: any) => 
+          `- ${m.food_name} (${m.quantity}) for ${m.meal_type}: ${m.calories}cal, ${m.protein}g protein, ${m.carbs}g carbs, ${m.fats}g fats`
+        ).join('\n')}\n\nTotal consumed so far: ${consumedToday.calories}cal, ${consumedToday.protein}g protein, ${consumedToday.carbs}g carbs, ${consumedToday.fats}g fats`
+      : "\n\nNo meals logged yet today.";
+
     const systemPrompt = `You are a creative nutrition assistant that suggests diverse, practical meals.
 
 STRICT REQUIREMENTS:
@@ -66,9 +91,9 @@ User's Food Preferences (examples of foods they like, but feel free to suggest o
 ${foodLibraryExamples}
 
 Ingredients Currently On Hand:
-${ingredientsList}
+${ingredientsList}${todaysSummary}
 
-Target for ${mealType}:
+Target for THIS ${mealType} meal:
 - Calories: ${targetCalories} kcal
 - Protein: ${targetProtein}g
 - Carbs: ${targetCarbs}g

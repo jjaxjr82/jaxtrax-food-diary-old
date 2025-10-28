@@ -354,6 +354,15 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
           targetProtein: targetMacros.protein,
           targetCarbs: targetMacros.carbs,
           targetFats: targetMacros.fats,
+          todaysMeals: todaysMeals.map(meal => ({
+            food_name: meal.food_name,
+            quantity: meal.quantity,
+            calories: meal.calories,
+            protein: meal.protein,
+            carbs: meal.carbs,
+            fats: meal.fats,
+            meal_type: meal.meal_type,
+          })),
         },
       });
 
