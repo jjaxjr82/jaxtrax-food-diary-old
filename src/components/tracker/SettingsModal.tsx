@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../../../supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import type { UserSettings } from "@/types";
 import { Settings, Info } from "lucide-react";

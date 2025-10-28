@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { Meal } from "@/types";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../../../supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Copy, Plus, Check, ChefHat, Calendar } from "lucide-react";
 import EditMealDialog from "./EditMealDialog";
