@@ -2,9 +2,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Meal } from "@/types";
 
 interface CopyMealModalProps {
@@ -17,14 +22,16 @@ interface CopyMealModalProps {
 const CopyMealModal = ({ meal, open, onOpenChange, onSuccess }: CopyMealModalProps) => {
   const { toast } = useToast();
   const [targetMealType, setTargetMealType] = useState<string>("Breakfast");
+  const [targetDate, setTargetDate] = useState<Date>(new Date());
 
   if (!meal) return null;
 
   const handleCopy = async () => {
     try {
+      const formattedDate = format(targetDate, 'yyyy-MM-dd');
       const { error } = await supabase.from("meals").insert({
         user_id: meal.user_id,
-        date: meal.date,
+        date: formattedDate,
         meal_type: targetMealType,
         food_name: meal.food_name,
         quantity: meal.quantity,
@@ -44,7 +51,7 @@ const CopyMealModal = ({ meal, open, onOpenChange, onSuccess }: CopyMealModalPro
 
       toast({
         title: "Success",
-        description: `Meal copied to ${targetMealType}`,
+        description: `Meal copied to ${targetMealType} on ${format(targetDate, 'MMM d, yyyy')}`,
       });
 
       onOpenChange(false);
@@ -69,8 +76,34 @@ const CopyMealModal = ({ meal, open, onOpenChange, onSuccess }: CopyMealModalPro
         <div className="space-y-4">
           <div>
             <p className="text-sm text-muted-foreground mb-2">
-              Copy "{meal.food_name}" to a different meal
+              Copy "{meal.food_name}" to a different day and meal
             </p>
+          </div>
+
+          <div>
+            <Label>Target Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !targetDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {targetDate ? format(targetDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={targetDate}
+                  onSelect={(date) => date && setTargetDate(date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div>
