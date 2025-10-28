@@ -46,9 +46,9 @@ const TrackerHeader = ({
                   textShadow: '2px 4px 6px rgba(0, 0, 0, 0.9)',
                   fontWeight: 900
                 }}>
-              MindFlow
+              Fuel Tracker
             </h1>
-            <p className="text-sm text-muted-foreground">From Chaos to Clarity</p>
+            <p className="text-sm text-muted-foreground">Power Your Performance</p>
           </div>
           
           <div className="flex items-center gap-2 flex-wrap">
