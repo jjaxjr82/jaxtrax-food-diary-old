@@ -22,24 +22,41 @@ const BarcodeScanner = ({ open, onOpenChange, onScan }: BarcodeScannerProps) => 
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
 
   useEffect(() => {
-    if (open && videoRef.current) {
-      startScanning();
+    let timeoutId: NodeJS.Timeout;
+    
+    if (open) {
+      // Set a timeout to switch to manual mode if camera doesn't start
+      timeoutId = setTimeout(() => {
+        if (!scanning && !error && !manualMode) {
+          console.log("Camera initialization timeout - switching to manual mode");
+          setError("Camera initialization timed out");
+          setManualMode(true);
+        }
+      }, 5000); // 5 second timeout
+      
+      if (videoRef.current) {
+        startScanning();
+      }
     }
 
     return () => {
+      clearTimeout(timeoutId);
       stopScanning();
     };
   }, [open]);
 
   const startScanning = async () => {
+    console.log("Starting barcode scanner...");
     try {
       setError(null);
-      setScanning(true);
+      setManualMode(false);
 
       // Check if browser supports getUserMedia
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.log("getUserMedia not supported");
         setError("Camera not supported on this browser");
         setManualMode(true);
+        setScanning(false);
         return;
       }
 
@@ -47,12 +64,23 @@ const BarcodeScanner = ({ open, onOpenChange, onScan }: BarcodeScannerProps) => 
         readerRef.current = new BrowserMultiFormatReader();
       }
 
-      const devices = await readerRef.current.listVideoInputDevices();
-      console.log("Available cameras:", devices);
+      let devices;
+      try {
+        devices = await readerRef.current.listVideoInputDevices();
+        console.log("Available cameras:", devices);
+      } catch (deviceError) {
+        console.error("Error listing devices:", deviceError);
+        setError("Unable to access camera devices");
+        setManualMode(true);
+        setScanning(false);
+        return;
+      }
       
       if (devices.length === 0) {
+        console.log("No cameras found");
         setError("No camera found on this device");
         setManualMode(true);
+        setScanning(false);
         return;
       }
 
@@ -65,48 +93,48 @@ const BarcodeScanner = ({ open, onOpenChange, onScan }: BarcodeScannerProps) => 
       const selectedDevice = backCamera || devices[0];
       console.log("Selected camera:", selectedDevice);
 
-      // Request camera permissions explicitly for better Samsung compatibility
-      const constraints = {
-        video: {
-          deviceId: selectedDevice.deviceId,
-          facingMode: backCamera ? 'environment' : 'user',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      };
-
-      await navigator.mediaDevices.getUserMedia(constraints);
-
-      readerRef.current.decodeFromVideoDevice(
-        selectedDevice.deviceId,
-        videoRef.current!,
-        (result, err) => {
-          if (result) {
-            const barcode = result.getText();
-            console.log("Barcode scanned:", barcode);
-            toast({
-              title: "Barcode detected",
-              description: `Code: ${barcode}`,
-            });
-            onScan(barcode);
-            stopScanning();
-            onOpenChange(false);
+      // Start decoding with a simpler approach
+      try {
+        await readerRef.current.decodeFromVideoDevice(
+          selectedDevice.deviceId,
+          videoRef.current!,
+          (result, err) => {
+            if (result) {
+              const barcode = result.getText();
+              console.log("Barcode scanned:", barcode);
+              setScanning(true); // Mark as actively scanning once video starts
+              toast({
+                title: "Barcode detected",
+                description: `Code: ${barcode}`,
+              });
+              onScan(barcode);
+              stopScanning();
+              onOpenChange(false);
+            }
+            if (err && !(err.name === 'NotFoundException')) {
+              console.error("Scanner error:", err);
+            }
           }
-          if (err && !(err.name === 'NotFoundException')) {
-            console.error("Scanner error:", err);
-          }
-        }
-      );
+        );
+        console.log("Scanner started successfully");
+        setScanning(true);
+      } catch (decodeError) {
+        console.error("Error starting decode:", decodeError);
+        throw decodeError;
+      }
     } catch (err: any) {
       console.error("Error starting scanner:", err);
       const errorMessage = err.name === 'NotAllowedError' 
-        ? "Camera access denied. Please allow camera permissions in your browser settings."
+        ? "Camera access denied. Please allow camera permissions."
         : err.name === 'NotFoundError'
         ? "No camera found on this device."
+        : err.name === 'NotReadableError'
+        ? "Camera is already in use by another application."
         : err.message || "Failed to access camera";
       
       setError(errorMessage);
       setManualMode(true);
+      setScanning(false);
       toast({
         title: "Camera Error",
         description: "Switching to manual entry mode",
