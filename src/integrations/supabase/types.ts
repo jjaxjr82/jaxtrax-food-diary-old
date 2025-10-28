@@ -123,6 +123,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ingredients_on_hand: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          ingredient_name: string
+          quantity: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          ingredient_name: string
+          quantity?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          ingredient_name?: string
+          quantity?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meals: {
         Row: {
           calories: number | null

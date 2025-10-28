@@ -30,28 +30,43 @@ serve(async (req) => {
       .select("food_name")
       .eq("user_id", userId);
 
-    // Fetch user's confirmed foods library
+    // Fetch user's confirmed foods library (as preferences/examples)
     const { data: confirmedFoods } = await supabase
       .from("confirmed_foods")
       .select("*")
       .eq("user_id", userId)
-      .limit(50);
+      .limit(20);
+
+    // Fetch ingredients on hand
+    const { data: ingredientsOnHand } = await supabase
+      .from("ingredients_on_hand")
+      .select("ingredient_name, quantity")
+      .eq("user_id", userId);
 
     const excludedList = excludedFoods?.map(f => f.food_name).join(", ") || "none";
-    const foodLibrary = confirmedFoods?.map(f => 
+    const foodLibraryExamples = confirmedFoods?.map(f => 
       `${f.food_name} (${f.quantity}): ${f.calories}cal, ${f.protein}g protein, ${f.carbs}g carbs, ${f.fats}g fat`
-    ).join("\n") || "No saved foods yet";
+    ).slice(0, 10).join("\n") || "No preferences specified";
 
-    const systemPrompt = `You are a nutrition assistant that suggests meals based on user preferences and nutritional goals.
+    const ingredientsList = ingredientsOnHand && ingredientsOnHand.length > 0
+      ? ingredientsOnHand.map(i => `${i.ingredient_name}${i.quantity ? ` (${i.quantity})` : ''}`).join(", ")
+      : "No ingredients specified";
+
+    const systemPrompt = `You are a creative nutrition assistant that suggests diverse, practical meals.
 
 STRICT REQUIREMENTS:
 1. NEVER suggest meals containing: ${excludedList}
-2. Prioritize foods from the user's library when possible
-3. Provide realistic portion sizes
-4. Match the target macros closely
+2. Suggest a variety of meals - don't just use foods from the user's library
+3. Include common, accessible foods that most people can find
+4. If ingredients on hand are provided, PRIORITIZE using those ingredients
+5. Provide realistic portion sizes
+6. Match the target macros as closely as possible
 
-User's Food Library:
-${foodLibrary}
+User's Food Preferences (examples of foods they like, but feel free to suggest other foods too):
+${foodLibraryExamples}
+
+Ingredients Currently On Hand:
+${ingredientsList}
 
 Target for ${mealType}:
 - Calories: ${targetCalories} kcal
@@ -59,11 +74,19 @@ Target for ${mealType}:
 - Carbs: ${targetCarbs}g
 - Fats: ${targetFats}g
 
-Suggest 3 different meal options that meet these targets. For each meal, provide:
-- Meal name
-- List of foods with quantities
-- Total macros (calories, protein, carbs, fats)
-- Brief preparation notes`;
+Suggest 3 different meal options. For each meal:
+- Give it a descriptive name
+- List specific foods with quantities
+- Calculate total macros (calories, protein, carbs, fats)
+- Add brief preparation notes
+- If using ingredients on hand, mention which ones
+
+Be creative and suggest meals that are:
+- Practical and easy to prepare
+- Nutritionally balanced
+- Use common ingredients
+- Avoid the excluded foods
+- Utilize ingredients on hand when possible`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

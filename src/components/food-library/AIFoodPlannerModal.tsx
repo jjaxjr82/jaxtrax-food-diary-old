@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Plus, Sparkles, Loader2, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -18,7 +19,10 @@ interface AIFoodPlannerModalProps {
 
 const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalProps) => {
   const [excludedFoods, setExcludedFoods] = useState<any[]>([]);
+  const [ingredientsOnHand, setIngredientsOnHand] = useState<any[]>([]);
   const [newFood, setNewFood] = useState("");
+  const [newIngredient, setNewIngredient] = useState("");
+  const [newIngredientQty, setNewIngredientQty] = useState("");
   const [loading, setLoading] = useState(false);
   const [mealType, setMealType] = useState("lunch");
   const [suggestions, setSuggestions] = useState("");
@@ -68,6 +72,7 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
   useEffect(() => {
     if (open) {
       fetchExcludedFoods();
+      fetchIngredientsOnHand();
       fetchUserSettings();
     }
   }, [open, userId]);
@@ -81,6 +86,18 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
 
     if (data) {
       setExcludedFoods(data);
+    }
+  };
+
+  const fetchIngredientsOnHand = async () => {
+    const { data } = await supabase
+      .from("ingredients_on_hand")
+      .select("*")
+      .eq("user_id", userId)
+      .order("ingredient_name");
+
+    if (data) {
+      setIngredientsOnHand(data);
     }
   };
 
@@ -154,6 +171,66 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
         description: `Removed ${foodName} from excluded foods`,
       });
       fetchExcludedFoods();
+    }
+  };
+
+  const handleAddIngredient = async () => {
+    if (!newIngredient.trim()) return;
+
+    if (newIngredient.length > 100) {
+      toast({
+        title: "Error",
+        description: "Ingredient name must be less than 100 characters",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase
+      .from("ingredients_on_hand")
+      .insert({
+        user_id: userId,
+        ingredient_name: newIngredient.trim(),
+        quantity: newIngredientQty.trim() || null,
+      });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add ingredient",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: `Added ${newIngredient} to ingredients`,
+      });
+      setNewIngredient("");
+      setNewIngredientQty("");
+      fetchIngredientsOnHand();
+    }
+    setLoading(false);
+  };
+
+  const handleRemoveIngredient = async (id: string, ingredientName: string) => {
+    const { error } = await supabase
+      .from("ingredients_on_hand")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove ingredient",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: `Removed ${ingredientName} from ingredients`,
+      });
+      fetchIngredientsOnHand();
     }
   };
 
@@ -247,8 +324,9 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
         </DialogHeader>
 
         <Tabs defaultValue="suggestions" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="suggestions">Get Suggestions</TabsTrigger>
+            <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
             <TabsTrigger value="excluded">Excluded Foods</TabsTrigger>
           </TabsList>
 
@@ -305,6 +383,66 @@ const AIFoodPlannerModal = ({ open, onOpenChange, userId }: AIFoodPlannerModalPr
                 <div className="whitespace-pre-wrap text-sm">{suggestions}</div>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="ingredients" className="space-y-4 mt-4">
+            <p className="text-sm text-muted-foreground">
+              Track what ingredients you have on hand - AI will prioritize using these
+            </p>
+            
+            <div className="flex gap-2">
+              <Input
+                placeholder="Ingredient (e.g., chicken breast)"
+                value={newIngredient}
+                onChange={(e) => setNewIngredient(e.target.value)}
+                className="flex-1"
+              />
+              <Input
+                placeholder="Qty (optional)"
+                value={newIngredientQty}
+                onChange={(e) => setNewIngredientQty(e.target.value)}
+                className="w-32"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleAddIngredient();
+                  }
+                }}
+              />
+              <Button onClick={handleAddIngredient} disabled={loading || !newIngredient.trim()}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              {ingredientsOnHand.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No ingredients added yet
+                </p>
+              ) : (
+                ingredientsOnHand.map((ingredient) => (
+                  <div
+                    key={ingredient.id}
+                    className="flex items-center justify-between bg-muted/50 p-3 rounded-lg"
+                  >
+                    <div>
+                      <span className="font-medium">{ingredient.ingredient_name}</span>
+                      {ingredient.quantity && (
+                        <span className="text-sm text-muted-foreground ml-2">
+                          ({ingredient.quantity})
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveIngredient(ingredient.id, ingredient.ingredient_name)}
+                    >
+                      <X className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="excluded" className="space-y-4 mt-4">
