@@ -5,6 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Mic, PlusCircle, Sparkles, Utensils, Coffee, Sun, Moon, Apple } from "lucide-react";
 import ManualAddFoodModal from "./ManualAddFoodModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface AddMealSectionProps {
   userId: string;
@@ -15,10 +22,13 @@ interface AddMealSectionProps {
 
 const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMealSectionProps) => {
   const [description, setDescription] = useState("");
-  const [mealType, setMealType] = useState<"Breakfast" | "Lunch" | "Dinner" | "Snack">("Breakfast");
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
   const [manualAddOpen, setManualAddOpen] = useState(false);
+  const [mealTypeConfirm, setMealTypeConfirm] = useState<{
+    open: boolean;
+    foods: any[];
+  }>({ open: false, foods: [] });
   const { toast } = useToast();
 
   const handleVoiceInput = () => {
@@ -60,34 +70,22 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("analyze-food", {
-        body: { description, userId, mealType },
+        body: { description, userId, mealType: null }, // Don't specify meal type
       });
 
       if (error) throw error;
 
       if (data?.foods) {
-        for (const item of data.foods) {
-          await supabase.from("meals").insert({
-            user_id: userId,
-            date: selectedDate,
-            meal_type: item.mealType || mealType,
-            food_name: toTitleCase(item.foodName),
-            quantity: item.quantity,
-            calories: item.calories,
-            protein: item.protein,
-            carbs: item.carbs,
-            fats: item.fats,
-            fiber: item.fiber,
-            is_confirmed: item.isConfirmed || false,
-          });
-        }
+        // Check if any food is missing mealType
+        const needsConfirmation = data.foods.some((item: any) => !item.mealType);
         
-        toast({
-          title: "Success",
-          description: `Added ${data.foods.length} food item(s)`,
-        });
-        setDescription("");
-        onMealAdded();
+        if (needsConfirmation) {
+          // Show confirmation modal
+          setMealTypeConfirm({ open: true, foods: data.foods });
+        } else {
+          // Add meals directly
+          await addMeals(data.foods);
+        }
       }
     } catch (error: any) {
       console.error("Error analyzing food:", error);
@@ -99,6 +97,45 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
     } finally {
       setLoading(false);
     }
+  };
+
+  const addMeals = async (foods: any[], confirmedMealType?: string) => {
+    try {
+      for (const item of foods) {
+        await supabase.from("meals").insert({
+          user_id: userId,
+          date: selectedDate,
+          meal_type: confirmedMealType || item.mealType,
+          food_name: toTitleCase(item.foodName),
+          quantity: item.quantity,
+          calories: item.calories,
+          protein: item.protein,
+          carbs: item.carbs,
+          fats: item.fats,
+          fiber: item.fiber,
+          is_confirmed: item.isConfirmed || false,
+        });
+      }
+      
+      toast({
+        title: "Success",
+        description: `Added ${foods.length} food item(s)`,
+      });
+      setDescription("");
+      onMealAdded();
+    } catch (error: any) {
+      console.error("Error adding meals:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add meals",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleMealTypeConfirm = async (selectedMealType: string) => {
+    await addMeals(mealTypeConfirm.foods, selectedMealType);
+    setMealTypeConfirm({ open: false, foods: [] });
   };
 
   const mealTypes = [
@@ -116,36 +153,6 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Meal Type Selection */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground">
-            Meal Type
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {mealTypes.map((type) => {
-              const IconComponent = type.Icon;
-              return (
-                <button
-                  key={type.value}
-                  type="button"
-                  onClick={() => setMealType(type.value)}
-                  disabled={disabled}
-                  className={`relative p-4 rounded-xl font-semibold transition-all ${
-                    mealType === type.value
-                      ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-lg scale-105"
-                      : "bg-background/50 text-foreground hover:bg-background/80 border border-border/50"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <IconComponent className="h-6 w-6" />
-                    <span className="text-sm">{type.value}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* AI Description Input */}
         <div className="space-y-3">
           <label htmlFor="food-description" className="text-sm font-medium text-foreground flex items-center gap-2">
@@ -165,7 +172,7 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
               }}
               rows={3}
               className="w-full pr-12 border-border/50 bg-background/50 focus:bg-background transition-colors resize-none"
-              placeholder="e.g., 8oz sirloin steak with 1 cup of rice and steamed broccoli"
+              placeholder="e.g., 8oz sirloin steak with 1 cup of rice for dinner, or 2 eggs and toast for breakfast"
               required
               disabled={disabled}
             />
@@ -184,7 +191,7 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Press Enter to submit, Shift+Enter for new line
+            Mention the meal type (breakfast, lunch, dinner, snack) in your description. Press Enter to submit.
           </p>
         </div>
 
@@ -219,6 +226,35 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
           </Button>
         </div>
       </form>
+
+      {/* Meal Type Confirmation Modal */}
+      <Dialog open={mealTypeConfirm.open} onOpenChange={(open) => !open && setMealTypeConfirm({ open, foods: [] })}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select Meal Type</DialogTitle>
+            <DialogDescription>
+              Which meal should this food be logged to?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 pt-4">
+            {mealTypes.map((type) => {
+              const IconComponent = type.Icon;
+              return (
+                <button
+                  key={type.value}
+                  onClick={() => handleMealTypeConfirm(type.value)}
+                  className="p-4 rounded-xl font-semibold transition-all bg-background/50 text-foreground hover:bg-primary hover:text-primary-foreground border border-border/50 hover:border-primary"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <IconComponent className="h-6 w-6" />
+                    <span className="text-sm">{type.value}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <ManualAddFoodModal
         open={manualAddOpen}

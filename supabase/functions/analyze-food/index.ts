@@ -91,6 +91,18 @@ serve(async (req) => {
             role: "system",
             content: `You are a nutrition expert. Provide ACCURATE nutritional data per serving.${confirmedHistory}
 
+MEAL TYPE DETECTION:
+- ALWAYS try to detect meal type from the description
+- Look for keywords: "breakfast", "lunch", "dinner", "snack", "morning", "evening", "afternoon"
+- If meal type is clearly stated or implied, set mealType field
+- If no meal type is mentioned, set mealType to null
+- Examples:
+  * "eggs for breakfast" → "Breakfast"
+  * "lunch salad" → "Lunch"
+  * "dinner steak" → "Dinner"
+  * "afternoon snack cookies" → "Snack"
+  * "just 2 eggs" → null (no context given)
+
 FOR BRANDED FOODS (e.g., "Sociables Crackers", "Oreos", "Doritos"):
 - Use REAL package nutrition facts
 - Example: Nabisco Sociables crackers = ~14 cal per cracker (70 cal for 5 crackers)
@@ -106,14 +118,14 @@ Return ONLY valid JSON:
 {
   "foods": [
     {
-      "foodName": "Sociables Crackers",
-      "quantity": "5 crackers",
-      "calories": 70,
-      "protein": 1,
-      "carbs": 10,
-      "fats": 3,
+      "foodName": "Eggs",
+      "quantity": "2 large",
+      "calories": 140,
+      "protein": 12,
+      "carbs": 1,
+      "fats": 10,
       "fiber": 0,
-      "mealType": "Snack"
+      "mealType": "Breakfast"
     }
   ]
 }
@@ -122,7 +134,7 @@ Rules:
 - Title Case names
 - Standard units (g, oz, cup, tbsp, medium, etc.)
 - Separate each food
-- Choose mealType: Breakfast/Lunch/Dinner/Snack
+- mealType: "Breakfast"/"Lunch"/"Dinner"/"Snack" or null if not mentioned
 - Use confirmed food values when matched
 - Round to 1 decimal
 - JSON only, no markdown`
