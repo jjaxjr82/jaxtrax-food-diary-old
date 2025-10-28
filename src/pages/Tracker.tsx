@@ -32,6 +32,31 @@ const Tracker = () => {
     }
   }, [user, selectedDate]);
 
+  // Real-time updates for meals
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('meals-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'meals',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          fetchDailyData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   const fetchDailyData = async () => {
     if (!user) return;
     

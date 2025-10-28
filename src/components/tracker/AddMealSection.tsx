@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Mic } from "lucide-react";
+import { Mic, PlusCircle } from "lucide-react";
+import ManualAddFoodModal from "./ManualAddFoodModal";
 
 interface AddMealSectionProps {
   userId: string;
@@ -17,6 +18,7 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
   const [mealType, setMealType] = useState<"Breakfast" | "Lunch" | "Dinner" | "Snack">("Breakfast");
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
+  const [manualAddOpen, setManualAddOpen] = useState(false);
   const { toast } = useToast();
 
   const handleVoiceInput = () => {
@@ -144,7 +146,7 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
             <Mic className="h-5 w-5" />
           </button>
         </div>
-        <div className="mt-4">
+        <div className="mt-4 space-y-2">
           <Button
             type="submit"
             className="w-full bg-[#CE1141] hover:bg-[#a60d34]"
@@ -152,8 +154,26 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
           >
             {loading ? "Analyzing..." : "Analyze and Add Meal"}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => setManualAddOpen(true)}
+            disabled={disabled}
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Manual Add Food
+          </Button>
         </div>
       </form>
+
+      <ManualAddFoodModal
+        open={manualAddOpen}
+        onOpenChange={setManualAddOpen}
+        userId={userId}
+        selectedDate={selectedDate}
+        onSuccess={onMealAdded}
+      />
     </div>
   );
 };
