@@ -128,6 +128,12 @@ const AddMealSection = ({ userId, selectedDate, onMealAdded, disabled }: AddMeal
             id="food-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
             rows={3}
             className="w-full pr-12"
             placeholder="e.g., 1 cup of oatmeal with a banana and a tablespoon of peanut butter"

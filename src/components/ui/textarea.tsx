@@ -12,6 +12,11 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ classNa
         className,
       )}
       ref={ref}
+      onKeyDown={(e) => {
+        if (props.onKeyDown) {
+          props.onKeyDown(e);
+        }
+      }}
       {...props}
     />
   );

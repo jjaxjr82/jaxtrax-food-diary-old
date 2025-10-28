@@ -167,6 +167,12 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
               placeholder="Enter weight"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSaveStats();
+                }
+              }}
             />
           </div>
           <div>
@@ -178,6 +184,12 @@ const DailyDashboard = ({ totals, dailyStats, weeklyGoal, userId, selectedDate, 
               placeholder="Enter calories"
               value={caloriesBurned}
               onChange={(e) => setCaloriesBurned(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSaveStats();
+                }
+              }}
             />
           </div>
           <div>
