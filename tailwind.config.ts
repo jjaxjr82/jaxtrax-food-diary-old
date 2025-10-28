@@ -15,7 +15,6 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        impact: ['Impact', 'Arial Black', 'sans-serif'],
       },
       colors: {
         success: "hsl(var(--success))",
