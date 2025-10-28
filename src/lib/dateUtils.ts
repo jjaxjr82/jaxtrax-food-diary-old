@@ -26,7 +26,9 @@ export const getDateOffsetInEastern = (days: number): string => {
  * @param offsetDays - Optional days to offset
  */
 export const getDateInEastern = (dateStr: string, offsetDays: number = 0): string => {
-  const date = new Date(dateStr);
+  // Parse the date string as local date (not UTC) to avoid timezone issues
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
   date.setDate(date.getDate() + offsetDays);
   return formatInTimeZone(date, TIMEZONE, 'yyyy-MM-dd');
 };
