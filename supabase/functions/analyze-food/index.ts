@@ -185,22 +185,22 @@ Rules:
     // Simple, fast processing
     if (parsed.foods) {
       parsed.foods = await Promise.all(parsed.foods.map(async (item: any) => {
-        // Check confirmed foods first (instant)
+        // Check confirmed foods first (instant) - match by food name only
         const confirmedMatch = confirmedFoods?.find(cf => 
-          cf.food_name.toLowerCase() === item.foodName.toLowerCase() &&
-          cf.quantity === item.quantity
+          cf.food_name.toLowerCase().trim() === item.foodName.toLowerCase().trim()
         );
         
         if (confirmedMatch) {
-          console.log(`✓ Confirmed: ${item.foodName}`);
+          console.log(`✓ Confirmed: ${item.foodName} (using library values)`);
           return {
             ...item,
             foodName: toTitleCase(item.foodName),
-            calories: confirmedMatch.calories,
-            protein: confirmedMatch.protein,
-            carbs: confirmedMatch.carbs,
-            fats: confirmedMatch.fats,
-            fiber: confirmedMatch.fiber,
+            quantity: item.quantity, // Use the quantity from user's input
+            calories: item.calories, // Use AI-calculated values for the specified quantity
+            protein: item.protein,
+            carbs: item.carbs,
+            fats: item.fats,
+            fiber: item.fiber,
             isConfirmed: true,
             dataSource: "Your Library"
           };
