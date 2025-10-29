@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Meal, DailyStats } from "@/types";
 import DailyDashboard from "@/components/tracker/DailyDashboard";
@@ -14,7 +14,8 @@ import { DebugPanel } from "@/components/DebugPanel";
 import { getTodayInEastern } from "@/lib/dateUtils";
 
 const Tracker = () => {
-  const { user, loading: authLoading, redirectCountdown } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(getTodayInEastern());
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -122,26 +123,25 @@ const Tracker = () => {
     { calories: 0, protein: 0, carbs: 0, fats: 0, fiber: 0 }
   );
 
-  // Show redirect message if not authenticated
-  if (!authLoading && !user) {
+  // Redirect to auth if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [authLoading, user, navigate]);
+
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center">
-        <div className="text-center space-y-4 p-8 rounded-lg bg-card border shadow-lg max-w-md">
-          <h2 className="text-2xl font-bold">Authentication Required</h2>
-          <p className="text-muted-foreground">
-            Redirecting to JAXTRAX authentication in {redirectCountdown} seconds...
-          </p>
-          <div className="pt-4">
-            <a 
-              href="https://www.jaxtrax.net/auth" 
-              className="text-primary hover:underline"
-            >
-              Click here if not redirected automatically
-            </a>
-          </div>
+        <div className="text-center">
+          <p className="text-lg text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   const handleResetData = async () => {
@@ -177,7 +177,7 @@ const Tracker = () => {
           setSelectedDate={setSelectedDate}
           signOut={async () => {
             await supabase.auth.signOut();
-            window.location.href = "https://www.jaxtrax.net/auth";
+            navigate("/auth");
           }}
           userId={user?.id || ""}
           onResetData={handleResetData}
