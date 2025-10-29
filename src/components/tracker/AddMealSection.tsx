@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../../../supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { Mic, PlusCircle, Sparkles, Utensils, Coffee, Sun, Moon, Apple } from "lucide-react";
 import ManualAddFoodModal from "./ManualAddFoodModal";

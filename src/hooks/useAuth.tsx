@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "../../supabaseClient";
 import type { User } from "@supabase/supabase-js";
 
 const EXTERNAL_AUTH_URL = "https://www.jaxtrax.net/auth";
