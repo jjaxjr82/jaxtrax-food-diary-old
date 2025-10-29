@@ -24,16 +24,26 @@ export const useAuth = () => {
 
       if (accessToken && refreshToken) {
         try {
-          await supabase.auth.setSession({
+          const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
+          
+          if (data.session) {
+            setUser(data.session.user);
+            setLoading(false);
+            return;
+          }
+          
+          if (error) {
+            console.error("Failed to restore session from cookies:", error);
+          }
         } catch (err) {
           console.error("Failed to restore session from cookies:", err);
         }
       }
       
-      // Now check for session
+      // Check for session in storage
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
