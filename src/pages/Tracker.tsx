@@ -10,7 +10,6 @@ import AddMealSection from "@/components/tracker/AddMealSection";
 import MealsList from "@/components/tracker/MealsList";
 import TrackerHeader from "@/components/tracker/TrackerHeader";
 import PendingConfirmation from "@/components/tracker/PendingConfirmation";
-import { DebugPanel } from "@/components/DebugPanel";
 import { getTodayInEastern } from "@/lib/dateUtils";
 
 const Tracker = () => {
@@ -184,8 +183,6 @@ const Tracker = () => {
           lockDay={lockDay}
           onLockDayChange={setLockDay}
         />
-
-        <DebugPanel />
 
         <div className="animate-slide-up space-y-6">
           <DailyDashboard
