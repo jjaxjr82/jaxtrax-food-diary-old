@@ -170,7 +170,7 @@ const FoodLibrary = () => {
         <header className="mb-8 pb-6 border-b border-border/40">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <Button
-              onClick={() => navigate("/food")}
+              onClick={() => navigate("/")}
               variant="outline"
               className="flex items-center gap-2 shadow-sm hover:shadow-md transition-shadow"
             >
